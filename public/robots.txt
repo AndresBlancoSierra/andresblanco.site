@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://andresblanco.site/sitemap-index.xml

@@ -1,0 +1,72 @@
+---
+import { NAV_ITEMS, SITE_DOMAIN } from '../../lib/site';
+---
+
+<header class="fixed inset-x-0 top-0 z-50 border-b border-line bg-bg/85 backdrop-blur-sm">
+  <nav
+    class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6"
+    aria-label="Primary"
+  >
+    <a href="/" class="flex shrink-0 items-center gap-2" aria-label="Home — Andrés Felipe Blanco Sierra">
+      <span class="font-mono text-sm tracking-tight text-fg transition-colors hover:text-signal"
+        >andres@blanco</span
+      >
+      <span class="hidden font-mono text-sm text-fg-dim sm:inline">:~$</span>
+    </a>
+
+    <!-- Desktop -->
+    <ul class="hidden items-center gap-1 text-sm md:flex">
+      {
+        NAV_ITEMS.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class:list={[
+                'px-3 py-2 font-mono text-xs tracking-wide transition-colors',
+                item.href === '/'
+                  ? 'text-fg'
+                  : 'text-fg-dim hover:bg-bg-inset hover:text-fg',
+              ]}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="hidden items-center gap-2 font-mono text-[11px] text-fg-dim lg:flex" aria-hidden="true">
+      <span class="h-1.5 w-1.5 rounded-full bg-ok" aria-hidden="true" />
+      <span class="hidden lg:inline">{SITE_DOMAIN} / online</span>
+    </div>
+
+    <!-- Mobile menu: native disclosure, zero JS -->
+    <details class="group relative md:hidden">
+      <summary
+        class="flex cursor-pointer list-none items-center gap-2 rounded border border-line px-3 py-2 font-mono text-xs text-fg-dim transition-colors hover:border-line-strong hover:text-fg [&::-webkit-details-marker]:hidden"
+        aria-label="Toggle navigation"
+      >
+        <span class="text-signal">$</span> menu
+        <span class="transition-transform group-open:rotate-90" aria-hidden="true">›</span>
+      </summary>
+      <div
+        class="absolute right-0 mt-2 w-52 border border-line bg-bg-elevated shadow-lg shadow-black/40"
+      >
+        <ul class="p-1">
+          {
+            NAV_ITEMS.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  class="block px-3 py-2.5 font-mono text-sm text-fg-dim transition-colors hover:bg-bg-inset hover:text-fg"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </details>
+  </nav>
+</header>

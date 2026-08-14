@@ -1,0 +1,93 @@
+---
+title: 'OpenCode Telegram Controller'
+year: '2026'
+order: 3
+status: featured
+summary: 'Telegram bot that runs AI (opencode) tasks with a task queue, controlled concurrency, graceful cancellation and allowlist-based security.'
+tags:
+  - Python
+  - aiogram
+  - SQLite
+  - systemd
+repo: 'https://github.com/AndresBlancoSierra/opencode-telegram-controller'
+sections:
+  - id: problem
+    label: Problem
+    note: 'Running AI coding tasks on a personal machine requires a safe, remote interface.'
+  - id: architecture
+    label: Architecture
+    note: 'A bot frontend over a task queue, deployed as a systemd user service.'
+  - id: implementation
+    label: Implementation
+    note: 'Task intake, queue, cancellation, summaries, persistence.'
+  - id: engineering-decisions
+    label: Engineering Decisions
+  - id: testing
+    label: Testing
+    note: '110 automated tests, none touching the real Telegram API.'
+  - id: results
+    label: Results
+  - id: lessons
+    label: Lessons Learned
+---
+
+## 01 / Problem
+
+I run opencode (an AI coding CLI) on my own machine for tasks across my
+projects. Starting tasks from another device — a phone, another desk — means
+either exposing a shell or running tasks manually at the machine. I wanted a
+safe, remote interface with the discipline of a real task queue.
+
+## 02 / Architecture
+
+```text
+Telegram  →  aiogram bot  →  task queue  →  opencode subprocess
+                │              │  concurrency limit + per-project serialization
+                └──── SQLite (tasks, projects)  └── systemd user service
+```
+
+- **Bot**: `aiogram`, long polling (no webhook, no exposed ports).
+- **Queue**: global concurrency limit and per-project serialization.
+- **Cancellation**: process-group SIGTERM/SIGKILL with timeout.
+- **Persistence**: SQLite; running tasks are marked FAILED on restart.
+
+## 03 / Implementation
+
+- Any plain message becomes a task in the active project.
+- Commands: `/status`, `/tasks`, `/task <id>`, `/cancel`, `/logs`, `/projects`,
+  `/use <name>`.
+- Deterministic summaries (duration, model, tokens, changed files, test
+  results) work offline — no LLM required; an Ollama engine is optional.
+- Notifications for queued, started, progress, completed, failed and cancelled.
+- Deployed as a user systemd service on Arch (`systemd 260`).
+
+## 04 / Engineering Decisions
+
+- **No shell execution** — tasks are dispatched to a known binary with a fixed
+  interface, not through `sh -c`.
+- **Allowlists, not accounts** — a Telegram user-ID allowlist and a project
+  allowlist; no authentication server to run.
+- **No auto Git commits** — automation should never mutate history by itself.
+- **Long polling** — avoids public ports entirely; a real security win for a
+  personal machine.
+
+## 05 / Testing
+
+**110 automated tests** pass, mocking subprocesses — the suite never touches the
+real Telegram API. Security paths (allowlists, cancellation, restart recovery)
+are covered explicitly.
+
+## 06 / Results
+
+A remote control plane for AI development that is safe by construction: no open
+ports, no shell, allowlist-only, and restart-safe. It is deployed as a
+persistent user service and used daily.
+
+## 07 / Lessons Learned
+
+- Graceful cancellation of a subprocess tree (process groups) is essential;
+  plain SIGTERM to the parent is not enough.
+- Deterministic summaries are a feature, not a shortcut — they make the tool
+  auditable and dependency-free.
+- Writing tests against mocked subprocesses keeps a stateful bot fast and
+  trustworthy.

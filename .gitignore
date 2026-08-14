@@ -1,0 +1,28 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+pnpm-debug.log*
+
+# env
+.env*
+.env.*.local
+!.env.example
+
+# testing
+coverage/
+playwright-report/
+test-results/
+
+# editors/os
+.DS_Store
+.vscode/
+.idea/
+
+# temporary
+*.local

@@ -1,0 +1,54 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import { SITE, PROJECTS } from '../lib/profile';
+---
+
+<PageLayout
+  path="/projects"
+  title="Projects"
+  description={`Projects by ${SITE.name} — full-stack, AI/CV pipelines, hardware and Linux systems automation.`}
+>
+  <section class="mx-auto max-w-6xl px-6 pt-28">
+    <p class="tech-label mb-4">projects / systems I have built</p>
+    <h1 class="mb-6 font-mono text-3xl tracking-tight text-fg sm:text-4xl">Projects</h1>
+    <p class="max-w-2xl text-fg-dim">
+      Each featured project is documented as a technical case study: the problem,
+      the architecture and the engineering decisions behind it.
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-6 py-12">
+    <h2 class="tech-label mb-6">01 · featured</h2>
+    <ul class="grid gap-4 md:grid-cols-2">
+      {
+        PROJECTS.filter((p) => p.status === 'featured').map((p, i) => (
+          <li>
+            <a
+              href={`/projects/${p.slug}`}
+              class="group block h-full border border-line bg-bg-elevated p-6 transition-colors hover:border-line-strong"
+            >
+              <div class="mb-4 flex items-center justify-between font-mono text-xs text-fg-faint">
+                <span>{String(i + 1).padStart(2, '0')} / featured</span>
+                <span>{p.year}</span>
+              </div>
+              <h3 class="mb-3 font-mono text-lg text-fg transition-colors group-hover:text-signal">
+                {p.name}
+              </h3>
+              <p class="mb-5 text-sm leading-relaxed text-fg-dim">{p.summary}</p>
+              <div class="flex flex-wrap gap-2">
+                {p.tech.map((t) => (
+                  <span class="font-mono text-xs text-fg-faint">{t}</span>
+                ))}
+              </div>
+              {p.metrics.length > 0 && (
+                <p class="mt-4 font-mono text-xs text-ok">
+                  {p.metrics.join(' · ')}
+                </p>
+              )}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</PageLayout>

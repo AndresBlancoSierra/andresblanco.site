@@ -1,0 +1,75 @@
+---
+import { getCollection } from 'astro:content';
+import PageLayout from '../layouts/PageLayout.astro';
+import { SITE } from '../lib/profile';
+
+const all = await getCollection('writing');
+const posts = all
+  .filter((post) => !post.data.draft)
+  .sort((a, b) => b.data.publishedAt.getTime() - a.data.publishedAt.getTime());
+---
+
+<PageLayout
+  path="/writing"
+  title="Writing"
+  description={`Technical writing by ${SITE.name} — architecture, Linux, software engineering.`}
+>
+  <section class="mx-auto max-w-4xl px-6 pt-28">
+    <p class="tech-label mb-4">writing / technical write-ups</p>
+    <h1 class="mb-6 font-mono text-3xl tracking-tight text-fg sm:text-4xl">Writing</h1>
+    <p class="max-w-2xl leading-relaxed text-fg-muted">
+      Case studies and technical notes on architecture, Linux, software
+      engineering and security. Infrastructure is ready; articles are added as
+      they are written.
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-4xl px-6 py-12">
+    {posts.length > 0 ? (
+      <ul class="space-y-px">
+        {
+          posts.map((post) => (
+            <li>
+              <a
+                href={`/writing/${post.id}`}
+                class="group flex flex-col gap-2 border-b border-line py-5 transition-colors hover:border-line-strong"
+              >
+                <div class="flex items-baseline justify-between gap-4">
+                  <h2 class="font-mono text-base text-fg transition-colors group-hover:text-signal">
+                    {post.data.title}
+                  </h2>
+                  <time
+                    datetime={post.data.publishedAt.toISOString()}
+                    class="shrink-0 font-mono text-xs text-fg-faint"
+                  >
+                    {post.data.publishedAt.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                  </time>
+                </div>
+                <p class="text-sm text-fg-dim">{post.data.description}</p>
+                <div class="flex flex-wrap gap-2">
+                  {post.data.tags.map((t) => (
+                    <span class="font-mono text-xs text-fg-faint">{t}</span>
+                  ))}
+                </div>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    ) : (
+      <div class="panel p-8 text-center">
+        <p class="font-mono text-sm text-fg-muted">no articles published yet</p>
+        <p class="mx-auto mt-2 max-w-md text-sm text-fg-dim">
+          Writing is in progress. Check back — or read the project case studies,
+          which are the current technical documentation.
+        </p>
+        <a
+          href="/projects"
+          class="mt-4 inline-block font-mono text-sm text-signal transition-colors hover:text-fg"
+        >
+          → project case studies
+        </a>
+      </div>
+    )}
+  </section>
+</PageLayout>

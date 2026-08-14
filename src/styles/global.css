@@ -1,0 +1,130 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
+/*
+ * ENGINEERING AS A SYSTEM — design tokens
+ *
+ * A single-source design system: black + white + precise grays.
+ * Color is used only to carry information, never decoration.
+ */
+@theme {
+  /* Type families */
+  --font-sans: 'Inter Variable', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SF Mono', monospace;
+
+  /* Background: near-black, never pure noise */
+  --color-bg: #050505;
+  --color-bg-elevated: #0a0a0a;
+  --color-bg-inset: #0f0f0f;
+
+  /* Foreground: white + structured grays */
+  --color-fg: #f4f4f5;
+  --color-fg-muted: #a1a1aa;
+  --color-fg-dim: #71717a;
+  --color-fg-faint: #52525b;
+
+  /* Lines and borders: very dark grays */
+  --color-line: #1f1f23;
+  --color-line-strong: #2e2e33;
+
+  /* A single informational accent: system signal blue, desaturated */
+  --color-signal: #7da2c9;
+  --color-signal-dim: #4a6a8a;
+
+  /* Semantic states (used sparingly and only when meaningful) */
+  --color-ok: #7cb48f;
+  --color-warn: #c9a97d;
+  --color-err: #c97d7d;
+
+  /* Typography scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-6xl: 3.75rem;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    @apply bg-bg text-fg font-sans antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-signal) 30%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-signal);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  a {
+    color: inherit;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  /* Reduced motion: honor the user's preference globally */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Technical label: uppercase mono, letter-spaced, low emphasis */
+  .tech-label {
+    @apply font-mono text-xs uppercase tracking-[0.18em] text-fg-dim;
+  }
+
+  .tech-label--signal {
+    @apply font-mono text-xs uppercase tracking-[0.18em] text-signal;
+  }
+
+  /* Panel: elevated surface with a hairline border */
+  .panel {
+    @apply border border-line bg-bg-elevated;
+  }
+
+  /* Inline code / identifiers */
+  .ident {
+    @apply font-mono text-[0.9em] text-fg-muted;
+  }
+}
+
+/* Scrollbar: understated */
+@media (prefers-reduced-motion: no-preference) {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line-strong);
+    border-radius: 5px;
+  }
+}

@@ -1,0 +1,113 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import { SITE } from '../lib/profile';
+
+const practices = [
+  {
+    area: 'Secrets out of Git',
+    evidence:
+      'All main repos keep tokens and credentials out of version control; the Telegram bot ships an .env.example and never commits secrets.',
+  },
+  {
+    area: 'Allowlist-only access',
+    evidence:
+      'The OpenCode Telegram Controller authenticates by Telegram user-ID allowlist plus a project allowlist — no open account system, no exposed ports (long polling only).',
+  },
+  {
+    area: 'No shell execution',
+    evidence:
+      'Automation dispatches tasks to a fixed binary interface instead of shelling out through sh -c; no automatic Git commits.',
+  },
+  {
+    area: 'Non-root containers',
+    evidence:
+      'Docker images for desktop apps (SKlauncher/Minecraft, Wine games) run as non-root with resource limits, X11 permissions reverted after use.',
+  },
+  {
+    area: 'Encrypted, versioned backups',
+    evidence:
+      'ObsidianSync uses private Git as canonical remote plus daily restic snapshots across Linux, Windows and Android (Termux).',
+  },
+];
+
+const learning = [
+  {
+    area: 'AWS Cloud',
+    note: 'active study — IAM, CloudTrail, GuardDuty, S3, identity & access control.',
+  },
+  {
+    area: 'CompTIA Security+',
+    note: 'active study — threats, cryptography, secure architecture.',
+  },
+  {
+    area: 'CCNA',
+    note: 'active study — networking, routing, switching.',
+  },
+  {
+    area: 'LFCS',
+    note: 'active study — Linux administration.',
+  },
+  {
+    area: 'OSCP',
+    note: 'active study — offensive security.',
+  },
+];
+---
+
+<PageLayout
+  path="/security"
+  title="Security"
+  description={`Security engineering by ${SITE.name} — evidence, then explanation, then implementation.`}
+>
+  <section class="mx-auto max-w-4xl px-6 pt-28">
+    <p class="tech-label--signal mb-4">security / evidence → explanation → implementation</p>
+    <h1 class="mb-6 font-mono text-3xl tracking-tight text-fg sm:text-4xl">Security</h1>
+    <p class="max-w-2xl leading-relaxed text-fg-muted">
+      I treat security as an engineering discipline: it shows up in how I build
+      and operate systems, not as a list of tools. Below is the evidence in my
+      own projects — what each decision was, why it mattered, and where it lives
+      in the code.
+    </p>
+  </section>
+
+  <!-- evidence -->
+  <section class="mx-auto max-w-4xl px-6 py-12">
+    <h2 class="tech-label mb-6">01 / evidence in practice</h2>
+    <ul class="space-y-px">
+      {
+        practices.map((p, i) => (
+          <li class="flex gap-5 border-t border-line py-5">
+            <span class="w-8 shrink-0 font-mono text-sm text-signal">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <div>
+              <h3 class="mb-2 font-mono text-base text-fg">{p.area}</h3>
+              <p class="text-sm leading-relaxed text-fg-muted">{p.evidence}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <!-- active study -->
+  <section class="border-t border-line">
+    <div class="mx-auto max-w-4xl px-6 py-12">
+      <h2 class="tech-label mb-2">02 / active study</h2>
+      <p class="mb-6 max-w-2xl text-sm text-fg-dim">
+        Currently studying toward professional certifications. These are
+        areas in preparation, not credentials held.
+      </p>
+      <ul class="grid gap-px bg-line sm:grid-cols-2">
+        {
+          learning.map((l) => (
+            <li class="bg-bg p-5">
+              <p class="font-mono text-sm text-fg">{l.area}</p>
+              <p class="mt-1 text-sm text-fg-dim">{l.note}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</PageLayout>

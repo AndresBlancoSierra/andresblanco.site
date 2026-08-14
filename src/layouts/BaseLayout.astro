@@ -1,0 +1,84 @@
+---
+import { SITE } from '../lib/profile';
+import { canonicalUrl } from '../lib/site';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  path: string;
+  image?: string;
+  type?: 'website' | 'article';
+}
+
+const {
+  title = SITE.name,
+  description = `${SITE.headline} — ${SITE.tagline}`,
+  path,
+  image = '/og-default.png',
+  type = 'website',
+} = Astro.props;
+
+const pageTitle = title === SITE.name ? `${SITE.name} — Systems Engineer` : `${title} — ${SITE.name}`;
+const url = canonicalUrl(path);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={url} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={url} />
+    <meta property="og:image" content={new URL(image, Astro.site).toString()} />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={new URL(image, Astro.site).toString()} />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Theme + structured data -->
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#050505" />
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: SITE.name,
+      jobTitle: 'Systems Engineering Student',
+      url,
+      email: `mailto:${SITE.email}`,
+      address: { '@type': 'PostalAddress', addressLocality: 'Bogotá', addressCountry: 'CO' },
+      sameAs: [SITE.github],
+    })} />
+  </head>
+  <body>
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded focus:bg-bg-elevated focus:px-4 focus:py-2 focus:font-mono focus:text-sm focus:text-fg focus:ring-2 focus:ring-signal"
+    >
+      Skip to content
+    </a>
+
+    <slot name="header" />
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <slot name="footer" />
+  </body>
+</html>

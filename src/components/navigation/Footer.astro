@@ -1,0 +1,31 @@
+---
+import { SITE } from '../../lib/profile';
+---
+
+<footer class="border-t border-line">
+  <div
+    class="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10 sm:flex-row sm:items-center sm:justify-between"
+  >
+    <div>
+      <p class="font-mono text-sm text-fg">
+        {SITE.name}
+      </p>
+      <p class="mt-1 max-w-md text-sm text-fg-dim">
+        Systems engineering student at Universidad EAN — Bogotá, Colombia.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-2 font-mono text-xs text-fg-dim">
+      <a href={`mailto:${SITE.email}`} class="transition-colors hover:text-signal">
+        {SITE.email}
+      </a>
+      <a href={SITE.github} target="_blank" rel="noopener noreferrer" class="transition-colors hover:text-signal">
+        github.com/{SITE.githubHandle}
+      </a>
+    </div>
+
+    <p class="font-mono text-xs text-fg-faint">
+      © {new Date().getFullYear()} {SITE.domain}
+    </p>
+  </div>
+</footer>

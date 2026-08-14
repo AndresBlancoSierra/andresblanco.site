@@ -1,0 +1,120 @@
+---
+import PageLayout from './PageLayout.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  publishedAt: string;
+  tags?: string[];
+  readingMinutes?: number;
+}
+const { title, description, publishedAt, tags = [], readingMinutes } = Astro.props;
+---
+
+<PageLayout
+  title={title}
+  description={description}
+  path="/writing"
+  type="article"
+>
+  <article class="mx-auto max-w-3xl px-6 pt-28 pb-20">
+    <p class="tech-label--signal mb-4">writing / article</p>
+    <h1 class="mb-4 font-mono text-3xl leading-tight tracking-tight text-fg sm:text-4xl">
+      {title}
+    </h1>
+    <p class="mb-4 text-fg-dim">
+      <time datetime={publishedAt}>
+        {new Date(publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+      </time>
+      {readingMinutes && <span> · {readingMinutes} min read</span>}
+    </p>
+    {tags.length > 0 && (
+      <div class="mb-8 flex flex-wrap gap-2">
+        {tags.map((t) => (
+          <span class="border border-line bg-bg-elevated px-2.5 py-1 font-mono text-xs text-fg-dim">
+            {t}
+          </span>
+        ))}
+      </div>
+    )}
+    <div class="prose-custom">
+      <slot />
+    </div>
+  </article>
+</PageLayout>
+
+<style>
+  :global(.prose-custom) {
+    color: var(--color-fg-muted);
+  }
+  :global(.prose-custom h2) {
+    font-family: var(--font-mono);
+    font-size: 1.125rem;
+    color: var(--color-fg);
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+  }
+  :global(.prose-custom h3) {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    color: var(--color-fg);
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+  :global(.prose-custom p) {
+    line-height: 1.75;
+    margin-bottom: 1rem;
+  }
+  :global(.prose-custom code) {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    color: var(--color-fg);
+    background: var(--color-bg-inset);
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+    border: 1px solid var(--color-line);
+  }
+  :global(.prose-custom pre) {
+    background: var(--color-bg-inset);
+    border: 1px solid var(--color-line);
+    border-radius: 6px;
+    padding: 1.25rem;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+  :global(.prose-custom pre code) {
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+  :global(.prose-custom ul) {
+    list-style: none;
+    margin: 1rem 0;
+    padding: 0;
+  }
+  :global(.prose-custom ul li) {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.7;
+  }
+  :global(.prose-custom ul li::before) {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--color-signal);
+  }
+  :global(.prose-custom a) {
+    color: var(--color-signal);
+    text-decoration: none;
+  }
+  :global(.prose-custom a:hover) {
+    text-decoration: underline;
+  }
+  :global(.prose-custom strong) {
+    color: var(--color-fg);
+    font-weight: 600;
+  }
+</style>

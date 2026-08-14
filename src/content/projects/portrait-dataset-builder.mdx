@@ -1,0 +1,98 @@
+---
+title: 'Portrait Dataset Builder'
+year: '2026'
+order: 2
+status: featured
+summary: 'CLI that ingests images/video, detects faces with InsightFace, deduplicates perceptually and classifies semantically with CLIP.'
+tags:
+  - Python
+  - Typer
+  - OpenCV
+  - InsightFace
+  - CLIP
+  - Hydra
+repo: 'https://github.com/AndresBlancoSierra/portrait-dataset-builder'
+sections:
+  - id: problem
+    label: Problem
+    note: 'Building a curated image dataset by hand is slow and error-prone.'
+  - id: architecture
+    label: Architecture
+    note: 'A Hydra-orchestrated pipeline with pluggable sources and compute steps.'
+  - id: implementation
+    label: Implementation
+    note: 'Ingest, deduplicate, classify, store.'
+  - id: engineering-decisions
+    label: Engineering Decisions
+  - id: testing
+    label: Testing
+    note: 'asyncio tests + strict linting (ruff, black, mypy).'
+  - id: results
+    label: Results
+  - id: lessons
+    label: Lessons Learned
+---
+
+## 01 / Problem
+
+Curated datasets are the bottleneck for computer vision work. Assembling a
+clean portrait dataset by hand means sourcing images, cropping faces, removing
+duplicates and labeling content — repetitive work that does not scale.
+
+## 02 / Architecture
+
+A CLI built with Typer + Rich, orchestrated by Hydra:
+
+```text
+ingest (local | web | video)
+  → face detect & crop (InsightFace)
+  → perceptual dedup (imagehash)
+  → vector search (usearch)
+  → semantic classify (CLIP)
+  → store metadata (SQLite async)
+```
+
+- **Sources**: local images, web search (DuckDuckGo) and video (yt-dlp).
+- **Compute**: face detection/cropping, perceptual hashing, vector indexes and
+  CLIP embeddings.
+- **CLI**: subcommands driven by Typer with Rich output and loguru logging.
+- **API**: a FastAPI app complements the CLI.
+
+## 03 / Implementation
+
+- Ingests from three sources into one pipeline.
+- **InsightFace** (ONNX Runtime) locates and crops faces.
+- **imagehash** produces perceptual hashes for deduplication; **usearch**
+  provides vector search over CLIP embeddings for near-dup detection.
+- Open CLIP embeddings classify each portrait semantically so the dataset can
+  be curated by content.
+- Metadata is stored in async SQLite; Hydra drives configs/experiments.
+
+## 04 / Engineering Decisions
+
+- **Hydra for orchestration** — pipelines as configs instead of hardcoded flags,
+  making runs reproducible.
+- **Async SQLite** — cleanly matches the FastAPI side and keeps IO non-blocking.
+- **Strict tooling from the start** — ruff, black and mypy in CI; CPU/GPU
+  variants as optional extras via `uv`.
+
+## 05 / Testing
+
+Asyncio pytest suite mocking heavy compute steps; lint and typecheck enforced
+(ruff, black, mypy). The project follows my standard: tooling configured before
+feature work.
+
+## 06 / Results
+
+A repeatable pipeline that turns raw images or video into a curated, classified
+portrait dataset — the kind of tooling usually hidden inside ML teams. It is my
+most rigorous software-engineering project: packaging (hatchling), optional
+extras, strict typing and full test coverage.
+
+## 07 / Lessons Learned
+
+- Invest in pipeline orchestration (Hydra) early; refactoring a CLI into
+  configs later is painful.
+- Perceptual hashing alone misses near-duplicates — pairing it with vector
+  search (usearch) is dramatically better.
+- Strict typing pays for itself in CV pipelines where data shapes drift.

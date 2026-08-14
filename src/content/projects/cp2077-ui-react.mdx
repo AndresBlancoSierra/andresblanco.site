@@ -1,0 +1,92 @@
+---
+title: 'CP2077 UI — Cyberpunk 2077 Replica'
+year: '2026'
+order: 5
+status: featured
+summary: 'Replica of the Cyberpunk 2077 interface (Hub, character, cyberware, inventory, stats) in React 19 + TypeScript with a custom router.'
+tags:
+  - React 19
+  - TypeScript
+  - Vite
+  - Tailwind
+repo: 'https://github.com/AndresBlancoSierra/cp2077-ui-react'
+sections:
+  - id: problem
+    label: Problem
+    note: 'Recreating a dense game interface is a real frontend architecture problem.'
+  - id: architecture
+    label: Architecture
+    note: 'A custom router and virtualized lists, organized by screen.'
+  - id: implementation
+    label: Implementation
+    note: 'Hub, character, cyberware, inventory and stats screens.'
+  - id: engineering-decisions
+    label: Engineering Decisions
+  - id: testing
+    label: Testing
+  - id: results
+    label: Results
+  - id: lessons
+    label: Lessons Learned
+---
+
+## 01 / Problem
+
+Cyberpunk 2077 has one of the most information-dense interfaces in games. To
+replicate it faithfully is not a styling exercise — it is an exercise in
+frontend architecture: many screens, shared state, virtualized lists and a
+navigation model that must feel like the game.
+
+## 02 / Architecture
+
+A React 19 + TypeScript single-page app with a clean separation:
+
+```text
+screens/    — HubMenu, Character, Cyberware, Inventory, Stats
+components/ — reusable UI pieces
+data/       — typed static data for the game systems
+hooks/      — shared behavior
+styles/     — the visual language of the interface
+```
+
+- **Router**: a custom `MenuRouter` instead of a dependency, matching the
+  game's screen-switching model.
+- **Lists**: `react-window` virtualizes the dense item lists (inventory,
+  cyberware) so large datasets stay smooth.
+- **Build**: Vite + Tailwind.
+
+## 03 / Implementation
+
+- Implemented the Hub menu, character screen, cyberware, inventory and stats
+  screens from scratch.
+- Typed data models for items, cyberware and stats so screens render from data
+  rather than hardcoded markup.
+- The custom router handles screen transitions exactly like the game's menu
+  stack.
+
+## 04 / Engineering Decisions
+
+- **Custom router over react-router** — the game's menu model is a stack of
+  screens, not URLs; a purpose-built router keeps the mapping explicit.
+- **Virtualization up front** — inventory-style UIs degrade fast without it.
+- **Typed data** — all game content lives in typed modules, making screens thin
+  and testable.
+
+## 05 / Testing
+
+The project follows a component-first structure that supports unit and
+interaction tests; the portfolio's other repos verify UI rendering with
+Playwright.
+
+## 06 / Results
+
+A pixel-faithful, interactive replica of a complex AAA interface built entirely
+with modern React — evidence of deep TypeScript and frontend architecture
+skills.
+
+## 07 / Lessons Learned
+
+- Dense UIs are an architecture problem first and a styling problem second.
+- Building your own small router clarifies the navigation model instead of
+  bending an existing one.
+- Virtualization should be decided early for list-heavy screens.

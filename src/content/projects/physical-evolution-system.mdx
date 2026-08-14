@@ -1,0 +1,93 @@
+---
+title: 'Physical Evolution System (GYM OS)'
+year: '2026'
+order: 6
+status: featured
+summary: 'Backend that parses an Obsidian vault into SQLite and computes progression, PRs and gamification (XP/levels) with an automatic inotify watcher.'
+tags:
+  - Python
+  - SQLite
+  - inotify
+  - pytest
+repo: 'https://github.com/AndresBlancoSierra/GYM-ciberpunk-wallpaper'
+sections:
+  - id: problem
+    label: Problem
+    note: 'Turning years of hand-written gym notes into a game-like feedback system.'
+  - id: architecture
+    label: Architecture
+    note: 'Obsidian as source of truth, read-only, parsed into SQLite.'
+  - id: implementation
+    label: Implementation
+    note: 'Parser, progression engine, gamification, inotify watcher.'
+  - id: engineering-decisions
+    label: Engineering Decisions
+  - id: testing
+    label: Testing
+    note: '88 automated tests and an event bus.'
+  - id: results
+    label: Results
+    note: 'Feeds live desktop wallpapers in real time.'
+  - id: lessons
+    label: Lessons Learned
+---
+
+## 01 / Problem
+
+I track my training in an Obsidian vault of Markdown notes. Notes are a record,
+but they are not feedback — there is no automatic sense of progression,
+personal records (PRs) or streaks. I wanted the discipline of a real backend
+over my own data: parse it, analyze it, and feed it to anything downstream.
+
+## 02 / Architecture
+
+```text
+Obsidian vault (Markdown, source of truth — never modified)
+   ▼ parser
+  SQLite
+   ▼ engine
+  progression, PRs, Push/Pull/Leg aggregates, body weight
+   ▼ gamification
+  XP (only for real progress), levels, achievements
+   ▼ inotify watcher
+  re-scan automatically when the vault changes
+```
+
+## 03 / Implementation
+
+- **Parser**: reads the Markdown vault and extracts structured data into SQLite
+  without ever rewriting the source files.
+- **Analysis engine**: progression over time, personal records, push/pull/leg
+  aggregates, body weight and transformation dates.
+- **Gamification**: XP is awarded only for real progress (never for editing
+  files); achievements are keyed by entity so they are never double-granted.
+- **CLI**: `init`, `scan`, `status`, `analyze`, `progress`, `xp`, `watch`.
+- **Watcher**: stdlib `inotify` with debounce re-scans when a note is saved.
+
+## 04 / Engineering Decisions
+
+- **Obsidian is the source of truth, read-only** — the tool must never mutate
+  the user's notes; the database is a derived artifact.
+- **XP for progress, not activity** — gamification only makes sense when it
+  measures outcomes, so editing a file can never award XP.
+- **Event bus** — a minimal internal event bus keeps the CLI, watcher and
+  export paths decoupled.
+
+## 05 / Testing
+
+**88 automated tests** cover parsing, analysis, gamification rules (including
+no-double-grant and no-edit-XP invariants) and the watcher debounce.
+
+## 06 / Results
+
+A correct, tested backend for personal analytics that feeds live gamified
+desktop wallpapers in real time (Pip-Boy and cyberpunk wallpapers read the same
+engine). It is an unusual proof of skill: real-world data engineering applied to
+my own daily system.
+
+## 07 / Lessons Learned
+
+- Data pipelines over personal data teach the same discipline as production
+  pipelines: schema stability, deduplication and invariants.
+- Gamification incentives must be encoded precisely or they game themselves.
+- stdlib `inotify` with debounce is enough — no external watch tool needed.

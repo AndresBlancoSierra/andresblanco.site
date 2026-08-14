@@ -1,0 +1,50 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import { SITE } from '../lib/profile';
+---
+
+<PageLayout
+  path="/contact"
+  title="Contact"
+  description={`Contact ${SITE.name} — software engineering, cloud and security.`}
+>
+  <section class="mx-auto max-w-2xl px-6 pt-28 pb-20">
+    <p class="tech-label--signal mb-4">contact / reach me</p>
+    <h1 class="mb-8 font-mono text-3xl tracking-tight text-fg sm:text-4xl">Contact</h1>
+
+    <div class="space-y-4">
+      <a
+        href={`mailto:${SITE.email}`}
+        class="group flex items-center gap-4 border border-line bg-bg-elevated p-5 transition-colors hover:border-signal"
+      >
+        <span class="font-mono text-signal" aria-hidden="true">@</span>
+        <div>
+          <p class="text-sm text-fg-dim">email</p>
+          <p class="font-mono text-sm text-fg transition-colors group-hover:text-signal">
+            {SITE.email}
+          </p>
+        </div>
+      </a>
+
+      <a
+        href={SITE.github}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="group flex items-center gap-4 border border-line bg-bg-elevated p-5 transition-colors hover:border-signal"
+      >
+        <span class="font-mono text-signal" aria-hidden="true">⌥</span>
+        <div>
+          <p class="text-sm text-fg-dim">github</p>
+          <p class="font-mono text-sm text-fg transition-colors group-hover:text-signal">
+            github.com/{SITE.githubHandle}
+          </p>
+        </div>
+      </a>
+    </div>
+
+    <p class="mt-8 border-l-2 border-line pl-4 text-sm leading-relaxed text-fg-muted">
+      I'm open to software engineering, backend, cloud and security roles, and to
+      technical conversations about systems.
+    </p>
+  </section>
+</PageLayout>
