@@ -16,7 +16,8 @@ import { NAV_ITEMS, canonicalUrl, SITE_DOMAIN } from '../src/lib/site';
 
 describe('SITE', () => {
   it('exposes real contact data', () => {
-    expect(SITE.name).toContain('Andrés');
+    expect(SITE.name).toContain('Andres');
+    expect(SITE.name).toContain('Blanco');
     expect(SITE.email).toBe('andresfelipeblancos15@gmail.com');
     expect(SITE.githubHandle).toBe('AndresBlancoSierra');
     expect(SITE.location).toContain('Bogotá');
@@ -94,18 +95,17 @@ describe('HONORS + LANGUAGES', () => {
 describe('NAVIGATION', () => {
   it('has only sections with real content', () => {
     expect(NAV_ITEMS.map((i) => i.href)).toEqual([
-      '/',
-      '/about',
-      '/projects',
-      '/security',
-      '/writing',
-      '/resume',
-      '/contact',
+      '/#top',
+      '/#about',
+      '/#projects',
+      '/#security',
+      '/#resume',
+      '/#contact',
     ]);
   });
 
   it('builds canonical URLs on the real domain', () => {
     expect(canonicalUrl('/')).toBe(`https://${SITE_DOMAIN}/`);
-    expect(canonicalUrl('/projects')).toBe(`https://${SITE_DOMAIN}/projects`);
+    expect(canonicalUrl('/projects/what')).toBe(`https://${SITE_DOMAIN}/projects/what`);
   });
 });

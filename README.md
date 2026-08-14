@@ -1,6 +1,6 @@
 # andresblanco.site
 
-Personal website and portfolio of **Andrés Felipe Blanco Sierra** — Systems Engineering student at Universidad EAN (Bogotá, Colombia). Focus: software, cloud, security, Linux.
+Personal website and portfolio of **Andres Blanco** — Systems Engineering student at Universidad EAN (Bogotá, Colombia). Focus: software, cloud, security, Linux.
 
 Aesthetic: black + white + a subtle constellation of systems — "Engineering as a System". No gradients, no glassmorphism, no fake metrics. Every fact on the site is real and traceable.
 
@@ -38,12 +38,12 @@ npm run format    # prettier --write
 
 ```
 src/
-  layouts/          # Base, Page, Article, Project layouts
+  layouts/          # Base, Page, Project layouts
   components/       # Header, Footer, React islands, site UI
   content/projects/ # 6 MDX case studies (01 Problem → 07 Lessons Learned)
   lib/profile.ts    # single source of truth (all personal data)
-  lib/site.ts       # nav, canonical URL helpers
-  pages/            # index, about, projects, security, writing, resume, contact, rss
+  lib/site.ts       # nav anchors, canonical URL helpers
+  pages/            # index (single page with anchor sections) + projects/[slug]
   styles/global.css # Tailwind v4 theme tokens
 tests/              # vitest unit tests (profile invariants)
 e2e/                # Playwright smoke tests (desktop + mobile)
@@ -55,11 +55,11 @@ e2e/                # Playwright smoke tests (desktop + mobile)
 
 ## Deploy
 
-Static output in `dist/`. Compatible with Cloudflare Pages or Vercel. Domain: `andresblanco.site`. RSS at `/rss.xml`, sitemap at `/sitemap-index.xml`, PDF CV at `/resume.pdf`.
+Static output in `dist/`. Compatible with Cloudflare Pages or Vercel. Domain: `andresblanco.site`. Sitemap at `/sitemap-index.xml`, PDF CV at `/resume.pdf`. Removed top-level routes (`/about`, `/projects`, `/security`, `/resume`, `/contact`, `/writing`) redirect to their single-page anchor on `/`.
 
 ## Key decisions
 
 - **Astro 7 content layer**: collection config lives in `src/content.config.ts` with `glob()` loaders; entries are rendered with `render(entry)` from `astro:content`.
+- **Single-page layout**: everything lives on `/` as anchor sections (`#about`, `#projects`, `#security`, `#resume`, `#contact`); only project case studies are separate routes.
 - **Mobile nav is a native `<details>` disclosure** — zero JS.
 - **Constellation** uses a low-power WebGL canvas with reduced device-pixel ratio and `frameloop="demand"` on small screens.
-- **Writing section is intentionally empty** until real articles are published.

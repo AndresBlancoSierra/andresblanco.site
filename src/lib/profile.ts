@@ -5,7 +5,7 @@
  */
 
 export const SITE = {
-  name: 'Andrés Felipe Blanco Sierra',
+  name: 'Andres Blanco',
   domain: 'andresblanco.site',
   headline: 'Systems Engineering Student · Software · Cloud · Security',
   tagline: 'I build systems. I study how they work.',
@@ -170,7 +170,7 @@ export const PROJECTS: Project[] = [
     tech: ['Python', 'SQLite', 'inotify', 'pytest'],
     repo: 'https://github.com/AndresBlancoSierra/GYM-ciberpunk-wallpaper',
     highlights: [
-      'Obsidian Markdown as source of truth (never modified); parser extracts data into SQLite.', 
+      'Obsidian Markdown as source of truth (never modified); parser extracts data into SQLite.',
       'Gamification engine: XP only for real progress, levels, achievements keyed by entity; inotify watcher with debounce; feeds live desktop wallpapers.',
     ],
     metrics: ['88 automated tests'],
@@ -194,7 +194,15 @@ export const SKILLS: SkillGroup[] = [
   },
   {
     label: 'AI / ML',
-    details: ['Whisper', 'CLIP', 'OpenCV', 'InsightFace', 'Tesseract OCR', 'embeddings', 'scikit-learn'],
+    details: [
+      'Whisper',
+      'CLIP',
+      'OpenCV',
+      'InsightFace',
+      'Tesseract OCR',
+      'embeddings',
+      'scikit-learn',
+    ],
   },
   {
     label: 'Systems',

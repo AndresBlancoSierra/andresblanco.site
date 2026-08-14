@@ -10,6 +10,14 @@ export default defineConfig({
   site: 'https://andresblanco.site',
   output: 'static',
   integrations: [react(), mdx(), sitemap()],
+  redirects: {
+    '/about': '/#about',
+    '/projects': '/#projects',
+    '/security': '/#security',
+    '/resume': '/#resume',
+    '/contact': '/#contact',
+    '/writing': '/',
+  },
   vite: {
     plugins: [tailwindcss()],
   },

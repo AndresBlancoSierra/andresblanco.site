@@ -1,123 +1,399 @@
 ---
 import PageLayout from '../layouts/PageLayout.astro';
-import { SITE, PROJECTS } from '../lib/profile';
+import {
+  SITE,
+  EDUCATION,
+  DOMAINS,
+  SKILLS,
+  QUALITY_GUARANTEES,
+  LANGUAGES,
+  HONORS,
+  PROJECTS,
+  LEADERSHIP,
+} from '../lib/profile';
 import { ConstellationField } from '../components/three/ConstellationField';
+
+const practices = [
+  {
+    area: 'Secrets out of Git',
+    evidence:
+      'All main repos keep tokens and credentials out of version control; the Telegram bot ships an .env.example and never commits secrets.',
+  },
+  {
+    area: 'Allowlist-only access',
+    evidence:
+      'The OpenCode Telegram Controller authenticates by Telegram user-ID allowlist plus a project allowlist — no open account system, no exposed ports (long polling only).',
+  },
+  {
+    area: 'No shell execution',
+    evidence:
+      'Automation dispatches tasks to a fixed binary interface instead of shelling out through sh -c; no automatic Git commits.',
+  },
+  {
+    area: 'Non-root containers',
+    evidence:
+      'Docker images for desktop apps (SKlauncher/Minecraft, Wine games) run as non-root with resource limits, X11 permissions reverted after use.',
+  },
+  {
+    area: 'Encrypted, versioned backups',
+    evidence:
+      'ObsidianSync uses private Git as canonical remote plus daily restic snapshots across Linux, Windows and Android (Termux).',
+  },
+];
+
+const learning = [
+  {
+    area: 'AWS Cloud',
+    note: 'active study — IAM, CloudTrail, GuardDuty, S3, identity & access control.',
+  },
+  { area: 'CompTIA Security+', note: 'active study — threats, cryptography, secure architecture.' },
+  { area: 'CCNA', note: 'active study — networking, routing, switching.' },
+  { area: 'LFCS', note: 'active study — Linux administration.' },
+  { area: 'OSCP', note: 'active study — offensive security.' },
+];
 ---
 
-<PageLayout
-  path="/"
-  title={SITE.name}
-  description={`${SITE.headline} — ${SITE.tagline}`}
->
-  <!-- HERO -->
-  <section class="relative isolate flex min-h-[78vh] items-center overflow-hidden border-b border-line">
-    <div
-      class="absolute inset-0 -z-10 opacity-90"
-      aria-hidden="true"
-    >
+<PageLayout path="/" title={SITE.name} description={`${SITE.headline} — ${SITE.tagline}`}>
+  <!-- ============ HERO ============ -->
+  <section id="top" class="relative isolate flex min-h-[88vh] items-center overflow-hidden">
+    <div class="absolute inset-0 -z-10 opacity-60" aria-hidden="true">
       <ConstellationField client:visible />
     </div>
 
-    <div class="mx-auto w-full max-w-6xl px-6 py-24">
-      {/* status line — system/online */}
-      <p class="tech-label--signal mb-6 flex items-center gap-2">
-        <span class="h-1.5 w-1.5 rounded-full bg-ok" aria-hidden="true" />
-        system / online · {new Date().getUTCFullYear()}
-      </p>
+    <div class="mx-auto w-full max-w-6xl px-6 py-28">
+      <div class="max-w-3xl">
+        <p class="tech-label mb-8">{SITE.headline}</p>
 
-      <h1 class="font-mono text-4xl leading-tight tracking-tight text-fg sm:text-6xl">
-        {SITE.name}
-      </h1>
-
-      <p class="mt-4 font-mono text-base tracking-wide text-fg-muted sm:text-lg">
-        <span class="text-signal">$</span> {SITE.headline}
-      </p>
-
-      <p class="mt-8 max-w-xl border-l-2 border-line pl-4 text-lg leading-relaxed text-fg-muted">
-        {SITE.tagline}
-        <span class="text-fg"> I build complete systems — from C++ drivers and
-        Arduino firmware to Whisper/CLIP pipelines and React frontends — and
-        document how they work.</span>
-      </p>
-
-      <div class="mt-10 flex flex-wrap items-center gap-3">
-        <a
-          href="/projects"
-          class="inline-flex items-center gap-2 border border-line-strong bg-bg-elevated px-5 py-2.5 font-mono text-sm tracking-wide text-fg transition-colors hover:border-signal hover:text-signal"
+        <h1
+          class="max-w-3xl font-sans text-4xl font-semibold leading-[1.05] tracking-tight text-fg sm:text-5xl lg:text-6xl"
         >
-          <span class="text-fg-dim" aria-hidden="true">[</span> explore projects
-          <span class="text-fg-dim" aria-hidden="true">]</span>
-        </a>
-        <a
-          href="/resume"
-          class="inline-flex items-center gap-2 px-5 py-2.5 font-mono text-sm tracking-wide text-fg-dim transition-colors hover:text-signal"
+          Turning curiosity into things that work.
+        </h1>
+
+        <p
+          class="mt-8 max-w-2xl font-sans text-xl font-normal leading-snug text-fg-muted sm:text-2xl"
         >
-          resume <span aria-hidden="true">→</span>
-        </a>
+          Across the stack — from low-level software and hardware interfaces to cloud
+          infrastructure, AI pipelines, and modern applications — driven by a deeper understanding
+          of the technology behind them.
+        </p>
+
+        <div class="mt-12 flex flex-wrap items-center gap-x-10 gap-y-4">
+          <a
+            href="#projects"
+            class="group inline-flex items-center gap-2 font-sans text-sm text-fg transition-colors hover:text-fg-muted"
+          >
+            View projects
+            <span
+              class="text-fg-muted transition-transform group-hover:translate-x-1"
+              aria-hidden="true">→</span
+            >
+          </a>
+          <a
+            href="#resume"
+            class="group inline-flex items-center gap-2 font-sans text-sm text-fg-muted transition-colors hover:text-fg"
+          >
+            Resume
+            <span class="transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+          </a>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- QUICK FACTS -->
-  <section class="border-b border-line">
-    <div class="mx-auto grid max-w-6xl gap-px bg-line sm:grid-cols-3">
-      <div class="bg-bg p-6">
-        <p class="tech-label mb-2">education</p>
-        <p class="font-mono text-sm text-fg-muted">
-          B.S. Systems Engineering — Universidad EAN
-        </p>
-      </div>
-      <div class="bg-bg p-6">
-        <p class="tech-label mb-2">focus</p>
-        <p class="font-mono text-sm text-fg-muted">
-          Software · Cloud · Security · Linux
-        </p>
-      </div>
-      <div class="bg-bg p-6">
-        <p class="tech-label mb-2">verification</p>
-        <p class="font-mono text-sm text-fg-muted">
-          6 featured projects · 198+ automated tests
-        </p>
+  <!-- ============ ABOUT ============ -->
+  <section id="about" class="border-t border-line">
+    <div class="mx-auto max-w-6xl px-6 py-24">
+      <p class="tech-label mb-4">about / who I am</p>
+      <h2 class="mb-12 font-mono text-3xl tracking-tight text-fg sm:text-4xl">About</h2>
+
+      <div class="grid gap-10 lg:grid-cols-5">
+        <!-- narrative -->
+        <div class="space-y-6 lg:col-span-3">
+          <p class="text-lg leading-relaxed text-fg-muted">
+            I'm a 7th-semester Systems Engineering student at <span class="text-fg"
+              >Universidad EAN</span
+            > in Bogotá. I build systems end-to-end and I document how they work.
+          </p>
+          <p class="leading-relaxed text-fg-muted">
+            My work spans the whole stack: C++ Linux drivers and Arduino firmware, Whisper/CLIP
+            computer-vision pipelines in Python, FastAPI backends, and React 19 frontends. I treat
+            my machine and the software around it as a system to be engineered — wallpapers that
+            read an Obsidian vault, Telegram bots that run AI tasks, and systemd services that keep
+            everything running.
+          </p>
+          <p class="leading-relaxed text-fg-muted">
+            I publish consistently (16 public repositories, 6 featured), test what I build (198+
+            automated tests across main projects), and document decisions — architecture, trade-offs
+            and troubleshooting.
+          </p>
+
+          <!-- domains as constellation prose -->
+          <div class="panel mt-8 p-6">
+            <p class="tech-label mb-4">areas of work</p>
+            <ul class="space-y-3">
+              {
+                DOMAINS.map((d) => (
+                  <li class="flex items-baseline gap-3 font-mono text-sm">
+                    <span class="text-signal">◆</span>
+                    <span class="text-fg">{d.label}</span>
+                    <span class="text-fg-dim">— {d.detail}</span>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+
+          <!-- engineering practice -->
+          <div class="mt-8">
+            <p class="tech-label mb-5">engineering practice</p>
+            <ul class="space-y-px">
+              {
+                QUALITY_GUARANTEES.map((g, i) => (
+                  <li class="flex gap-4 py-3">
+                    <span class="w-8 shrink-0 font-mono text-sm text-fg-faint">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span class="text-sm leading-relaxed text-fg-muted">{g}</span>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </div>
+
+        <!-- side column: education, languages, honors -->
+        <aside class="space-y-8 lg:col-span-2">
+          <div>
+            <h2 class="tech-label mb-3">education</h2>
+            <div class="panel p-5">
+              <p class="font-mono text-sm text-fg">B.S. Systems Engineering</p>
+              <p class="mt-1 text-sm text-fg-dim">{EDUCATION.institution}</p>
+              <p class="mt-1 font-mono text-xs text-fg-faint">2023 — 2027 (expected)</p>
+              <p class="mt-3 text-sm leading-relaxed text-fg-dim">
+                Student representative of the Faculty of Engineering; artistic excellence
+                scholarship with the EAN Philharmonic Orchestra.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <h2 class="tech-label mb-3">languages</h2>
+            <ul class="space-y-2">
+              {
+                LANGUAGES.map((l) => (
+                  <li class="panel p-4">
+                    <p class="font-mono text-sm text-fg">{l.language}</p>
+                    <p class="mt-1 text-xs text-fg-dim">{l.level}</p>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+
+          <div>
+            <h2 class="tech-label mb-3">honors</h2>
+            <ul class="space-y-2">
+              {
+                HONORS.map((h) => (
+                  <li class="panel p-4">
+                    <p class="font-mono text-sm text-fg">{h.title}</p>
+                    {h.detail && <p class="mt-1 text-xs text-fg-dim">{h.detail}</p>}
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </aside>
       </div>
     </div>
   </section>
 
-  <!-- FEATURED PROJECTS PREVIEW -->
-  <section class="mx-auto max-w-6xl px-6 py-16">
-    <div class="mb-8 flex items-baseline justify-between">
-      <h2 class="font-mono text-2xl tracking-tight text-fg">Selected systems</h2>
-      <a href="/projects" class="font-mono text-sm text-fg-dim transition-colors hover:text-signal">
-        all projects →
-      </a>
-    </div>
+  <!-- ============ PROJECTS ============ -->
+  <section id="projects" class="border-t border-line">
+    <div class="mx-auto max-w-6xl px-6 py-24">
+      <p class="tech-label mb-4">projects / systems I have built</p>
+      <h2 class="mb-6 font-mono text-3xl tracking-tight text-fg sm:text-4xl">Projects</h2>
+      <p class="mb-12 max-w-2xl text-fg-dim">
+        Each featured project is documented as a technical case study: the problem, the architecture
+        and the engineering decisions behind it.
+      </p>
 
-    <ul class="grid gap-px bg-line sm:grid-cols-2">
-      {
-        PROJECTS.filter((p) => p.status === 'featured')
-          .slice(0, 4)
-          .map((project, i) => (
+      <ul class="grid gap-4 md:grid-cols-2">
+        {
+          PROJECTS.filter((p) => p.status === 'featured').map((p, i) => (
             <li>
               <a
-                href={`/projects/${project.slug}`}
-                class="group block h-full bg-bg p-6 transition-colors hover:bg-bg-elevated"
+                href={`/projects/${p.slug}`}
+                class="group block h-full border border-line bg-bg-elevated p-6 transition-colors hover:border-line-strong"
               >
                 <div class="mb-4 flex items-center justify-between font-mono text-xs text-fg-faint">
-                  <span>{String(i + 1).padStart(2, '0')}</span>
-                  <span>{project.year}</span>
+                  <span>{String(i + 1).padStart(2, '0')} / featured</span>
+                  <span>{p.year}</span>
                 </div>
-                <h3 class="mb-2 font-mono text-lg text-fg transition-colors group-hover:text-signal">
-                  {project.name}
+                <h3 class="mb-3 font-mono text-lg text-fg transition-colors group-hover:text-signal">
+                  {p.name}
                 </h3>
-                <p class="mb-4 text-sm leading-relaxed text-fg-dim">
-                  {project.summary}
-                </p>
-                <p class="font-mono text-xs text-fg-faint">
-                  {project.tech.join(' · ')}
-                </p>
+                <p class="mb-5 text-sm leading-relaxed text-fg-dim">{p.summary}</p>
+                <div class="flex flex-wrap gap-2">
+                  {p.tech.map((t) => (
+                    <span class="font-mono text-xs text-fg-faint">{t}</span>
+                  ))}
+                </div>
+                {p.metrics.length > 0 && (
+                  <p class="mt-4 font-mono text-xs text-ok">{p.metrics.join(' · ')}</p>
+                )}
               </a>
             </li>
           ))
-      }
-    </ul>
+        }
+      </ul>
+
+      <!-- skills -->
+      <div class="mt-20">
+        <p class="tech-label mb-8">skills / technology</p>
+        <dl class="grid gap-px bg-line md:grid-cols-2">
+          {
+            SKILLS.map((group) => (
+              <div class="bg-bg p-6">
+                <dt class="font-mono text-xs tracking-widest text-signal uppercase">
+                  {group.label}
+                </dt>
+                <dd class="mt-3 text-sm leading-loose text-fg-dim">{group.details.join(' · ')}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECURITY ============ -->
+  <section id="security" class="border-t border-line">
+    <div class="mx-auto max-w-4xl px-6 py-24">
+      <p class="tech-label--signal mb-4">security / evidence → explanation → implementation</p>
+      <h2 class="mb-6 font-mono text-3xl tracking-tight text-fg sm:text-4xl">Security</h2>
+      <p class="max-w-2xl leading-relaxed text-fg-muted">
+        I treat security as an engineering discipline: it shows up in how I build and operate
+        systems, not as a list of tools. Below is the evidence in my own projects — what each
+        decision was, why it mattered, and where it lives in the code.
+      </p>
+
+      <!-- evidence -->
+      <h3 class="tech-label mt-14 mb-6">01 / evidence in practice</h3>
+      <ul class="space-y-px">
+        {
+          practices.map((p, i) => (
+            <li class="flex gap-5 border-t border-line py-5">
+              <span class="w-8 shrink-0 font-mono text-sm text-signal">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <div>
+                <h4 class="mb-2 font-mono text-base text-fg">{p.area}</h4>
+                <p class="text-sm leading-relaxed text-fg-muted">{p.evidence}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+
+      <!-- active study -->
+      <h3 class="tech-label mt-14 mb-2">02 / active study</h3>
+      <p class="mb-6 max-w-2xl text-sm text-fg-dim">
+        Currently studying toward professional certifications. These are areas in preparation, not
+        credentials held.
+      </p>
+      <ul class="grid gap-px bg-line sm:grid-cols-2">
+        {
+          learning.map((l) => (
+            <li class="bg-bg p-5">
+              <p class="font-mono text-sm text-fg">{l.area}</p>
+              <p class="mt-1 text-sm text-fg-dim">{l.note}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ RESUME ============ -->
+  <section id="resume" class="border-t border-line">
+    <div class="mx-auto max-w-4xl px-6 py-24">
+      <div class="mb-12 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="tech-label mb-4">resume / cv</p>
+          <h2 class="font-mono text-3xl tracking-tight text-fg sm:text-4xl">Resume</h2>
+        </div>
+        <a
+          href="/resume.pdf"
+          download
+          class="inline-flex items-center gap-2 border border-line-strong bg-bg-elevated px-4 py-2.5 font-mono text-sm text-fg transition-colors hover:border-signal hover:text-signal"
+        >
+          <span aria-hidden="true">↓</span> download pdf
+        </a>
+      </div>
+
+      <!-- leadership -->
+      <section class="mb-12">
+        <h3 class="tech-label mb-5">leadership</h3>
+        <ul class="space-y-px">
+          {
+            LEADERSHIP.map((item) => (
+              <li class="panel p-5">
+                <div class="flex flex-wrap items-baseline justify-between gap-2">
+                  <p class="font-mono text-sm text-fg">{item.role}</p>
+                  <p class="font-mono text-xs text-fg-faint">{item.year}</p>
+                </div>
+                <p class="mt-1 text-sm text-fg-dim">{item.org}</p>
+                <p class="mt-2 text-sm leading-relaxed text-fg-muted">{item.description}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section id="contact" class="border-t border-line">
+    <div class="mx-auto max-w-2xl px-6 py-24">
+      <p class="tech-label--signal mb-4">contact / reach me</p>
+      <h2 class="mb-10 font-mono text-3xl tracking-tight text-fg sm:text-4xl">Contact</h2>
+
+      <div class="space-y-4">
+        <a
+          href={`mailto:${SITE.email}`}
+          class="group flex items-center gap-4 border border-line bg-bg-elevated p-5 transition-colors hover:border-signal"
+        >
+          <span class="font-mono text-signal" aria-hidden="true">@</span>
+          <div>
+            <p class="text-sm text-fg-dim">email</p>
+            <p class="font-mono text-sm text-fg transition-colors group-hover:text-signal">
+              {SITE.email}
+            </p>
+          </div>
+        </a>
+
+        <a
+          href={SITE.github}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="group flex items-center gap-4 border border-line bg-bg-elevated p-5 transition-colors hover:border-signal"
+        >
+          <span class="font-mono text-signal" aria-hidden="true">⌥</span>
+          <div>
+            <p class="text-sm text-fg-dim">github</p>
+            <p class="font-mono text-sm text-fg transition-colors group-hover:text-signal">
+              github.com/{SITE.githubHandle}
+            </p>
+          </div>
+        </a>
+      </div>
+
+      <p class="mt-8 border-l-2 border-line pl-4 text-sm leading-relaxed text-fg-muted">
+        I'm open to software engineering, backend, cloud and security roles, and to technical
+        conversations about systems.
+      </p>
+    </div>
   </section>
 </PageLayout>

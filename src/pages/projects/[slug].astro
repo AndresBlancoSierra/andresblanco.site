@@ -16,12 +16,7 @@ const { Content } = await render(entry);
 const { title, year, summary, tags, repo, metrics } = entry.data;
 ---
 
-<PageLayout
-  path={`/projects/${entry.id}`}
-  title={title}
-  description={summary}
-  type="article"
->
+<PageLayout path={`/projects/${entry.id}`} title={title} description={summary} type="article">
   <ProjectLayout
     title={title}
     year={year}

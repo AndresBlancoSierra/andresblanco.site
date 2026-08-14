@@ -19,7 +19,6 @@ export interface NodeSpec {
   x: number;
   y: number;
   z: number;
-  signal?: boolean;
 }
 
 interface PlaneSpec {
@@ -71,15 +70,7 @@ function getMotionEnabled(): boolean {
   return window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
 }
 
-function Node({
-  position,
-  signal,
-  seed,
-}: {
-  position: [number, number, number];
-  signal?: boolean;
-  seed: number;
-}) {
+function Node({ position, seed }: { position: [number, number, number]; seed: number }) {
   const ref = useRef<THREE.Mesh>(null);
   const motion = useRef(getMotionEnabled());
 
@@ -87,26 +78,20 @@ function Node({
     if (!ref.current) return;
     if (!motion.current) return;
     const t = state.clock.elapsedTime;
-    const amp = 0.03;
-    ref.current.position.x = position[0] + Math.sin(t * 0.4 + seed) * amp;
-    ref.current.position.y = position[1] + Math.cos(t * 0.35 + seed * 1.7) * amp;
+    const amp = 0.02;
+    ref.current.position.x = position[0] + Math.sin(t * 0.3 + seed) * amp;
+    ref.current.position.y = position[1] + Math.cos(t * 0.25 + seed * 1.7) * amp;
   });
 
   return (
     <mesh ref={ref} position={position}>
-      <sphereGeometry args={[0.018, 16, 16]} />
-      <meshBasicMaterial color={signal ? '#7da2c9' : '#f4f4f5'} />
+      <sphereGeometry args={[0.016, 16, 16]} />
+      <meshBasicMaterial color="#c7c7cf" transparent opacity={0.75} depthWrite={false} />
     </mesh>
   );
 }
 
-function Edge({
-  from,
-  to,
-}: {
-  from: [number, number, number];
-  to: [number, number, number];
-}) {
+function Edge({ from, to }: { from: [number, number, number]; to: [number, number, number] }) {
   const ref = useRef<THREE.Mesh>(null);
   const motion = useRef(getMotionEnabled());
 
@@ -115,7 +100,7 @@ function Edge({
     if (!motion.current) return;
     // subtle opacity breathing: informative, not decorative
     const t = state.clock.elapsedTime;
-    const m = 0.16 + (Math.sin(t * 0.6 + from[0] * 3) + 1) * 0.06;
+    const m = 0.1 + (Math.sin(t * 0.4 + from[0] * 3) + 1) * 0.04;
     (ref.current.material as THREE.MeshBasicMaterial).opacity = m;
   });
 
@@ -130,14 +115,9 @@ function Edge({
   );
 
   return (
-    <mesh
-      ref={ref}
-      position={mid}
-      quaternion={quaternion}
-      renderOrder={1}
-    >
-      <cylinderGeometry args={[0.0009, 0.0009, length, 6, 1]} />
-      <meshBasicMaterial color="#2e2e33" transparent opacity={0.2} depthWrite={false} />
+    <mesh ref={ref} position={mid} quaternion={quaternion} renderOrder={1}>
+      <cylinderGeometry args={[0.0008, 0.0008, length, 6, 1]} />
+      <meshBasicMaterial color="#3a3a41" transparent opacity={0.25} depthWrite={false} />
     </mesh>
   );
 }
@@ -169,7 +149,6 @@ function ConstellationGraph() {
           <Node
             key={`n${p}-${i}`}
             position={[plane.x + n.x, n.y, plane.z + n.z]}
-            signal={n.signal}
             seed={p * 10 + i}
           />
         )),
@@ -194,8 +173,7 @@ export function ConstellationField() {
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');
-    const update = () =>
-      setQuality(mq.matches ? 'low' : 'high');
+    const update = () => setQuality(mq.matches ? 'low' : 'high');
     mq.addEventListener('change', update);
     return () => mq.removeEventListener('change', update);
   }, []);
@@ -210,16 +188,19 @@ export function ConstellationField() {
         frameloop={quality === 'high' ? 'always' : 'demand'}
         dpr={[1, 1.5]}
         camera={{ position: [0, 0, 5], fov: 50 }}
-        gl={{ antialias: true, alpha: true, powerPreference: quality === 'high' ? 'default' : 'low-power' }}
+        gl={{
+          antialias: true,
+          alpha: true,
+          powerPreference: quality === 'high' ? 'default' : 'low-power',
+        }}
       >
         <Scene />
       </Canvas>
-      {/* vignette to keep the scene subtle behind text */}
+      {/* gentle fade so the scene stays behind the text */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          background:
-            'radial-gradient(ellipse at center, rgba(5,5,5,0) 40%, rgba(5,5,5,0.9) 100%)',
+          background: 'radial-gradient(ellipse at center, rgba(5,5,5,0) 45%, rgba(5,5,5,0.8) 100%)',
         }}
       />
     </div>
