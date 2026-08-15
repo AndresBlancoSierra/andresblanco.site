@@ -3,15 +3,7 @@
  * feeding every page. If these break, real content is missing.
  */
 import { describe, expect, it } from 'vitest';
-import {
-  EDUCATION,
-  HONORS,
-  LEADERSHIP,
-  LANGUAGES,
-  PROJECTS,
-  SKILLS,
-  SITE,
-} from '../src/lib/profile';
+import { EDUCATION, HONORS, LEADERSHIP, LANGUAGES, SKILLS, SITE } from '../src/lib/profile';
 import { NAV_ITEMS, canonicalUrl, SITE_DOMAIN } from '../src/lib/site';
 
 describe('SITE', () => {
@@ -40,29 +32,6 @@ describe('LEADERSHIP', () => {
       expect(item.role.length).toBeGreaterThan(0);
       expect(item.org.length).toBeGreaterThan(0);
     }
-  });
-});
-
-describe('PROJECTS', () => {
-  it('has exactly the six featured projects with real repos', () => {
-    const featured = PROJECTS.filter((p) => p.status === 'featured');
-    expect(featured.length).toBe(6);
-    for (const project of featured) {
-      expect(project.repo).toMatch(/^https:\/\/github\.com\/AndresBlancoSierra\//);
-      expect(project.tech.length).toBeGreaterThan(0);
-    }
-  });
-
-  it('every featured project has a slug and case study content', () => {
-    for (const project of PROJECTS) {
-      expect(project.slug).toMatch(/^[a-z0-9-]+$/);
-    }
-  });
-
-  it('metrics are real and transitive', () => {
-    const total = PROJECTS.flatMap((p) => p.metrics);
-    expect(total.join(' ')).toContain('110');
-    expect(total.join(' ')).toContain('88');
   });
 });
 

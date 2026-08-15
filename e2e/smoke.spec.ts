@@ -56,9 +56,7 @@ test('security section is evidence-based, not a tool list', async ({ page }) => 
 
 test('contact section exposes real reach-me links', async ({ page }) => {
   await page.goto('/');
-  await expect(
-    page.getByRole('link', { name: /^phone \+57 312 308 7133$/i }),
-  ).toBeVisible();
+  await expect(page.getByRole('link', { name: /^phone \+57 312 308 7133$/i })).toBeVisible();
   await expect(
     page.getByRole('link', { name: /^email andresfelipeblancos15@gmail.com$/i }),
   ).toBeVisible();

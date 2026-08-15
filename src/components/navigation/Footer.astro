@@ -1,5 +1,6 @@
 ---
 import { SITE } from '../../lib/profile';
+import { SITE_DOMAIN } from '../../lib/site';
 ---
 
 <footer class="border-t border-line">
@@ -22,13 +23,19 @@ import { SITE } from '../../lib/profile';
       <a href={`mailto:${SITE.email}`} class="transition-colors hover:text-fg">
         {SITE.email}
       </a>
-      <a href={SITE.github} target="_blank" rel="noopener noreferrer" class="transition-colors hover:text-fg">
+      <a
+        href={SITE.github}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="transition-colors hover:text-fg"
+      >
         github.com/{SITE.githubHandle}
       </a>
     </div>
 
     <p class="font-mono text-xs text-fg-faint">
-      © {new Date().getFullYear()} {SITE.domain}
+      © {new Date().getFullYear()}
+      {SITE_DOMAIN}
     </p>
   </div>
 </footer>
