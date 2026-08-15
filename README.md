@@ -13,10 +13,11 @@ Aesthetic: black + white + a subtle constellation of systems — "Engineering as
 - **Tailwind CSS v4** — design tokens via `@theme` in `src/styles/global.css`
 - **MDX** — case studies under `src/content/projects/`
 - **TypeScript** (strict) — data is centralized in `src/lib/profile.ts`
+- **Hipparcos catalog** — the hero sky is built from real star data (`src/lib/constellations.ts`)
 
 ## Content model
 
-`src/lib/profile.ts` is the single source of truth for personal data (education, projects, skills, honors, languages, domains). It mirrors the CV in `~/Documents/CV` — no invented experience, no certifications, no LinkedIn, no percentages. Tests in `tests/profile.test.ts` guard these invariants.
+`src/lib/profile.ts` is the single source of truth for personal data (education, skills, honors, languages, domains). It mirrors the CV in `~/Documents/CV` — no invented experience, no certifications, no LinkedIn, no percentages. Case studies live in MDX under `src/content/projects/` and are the single source for project facts (title, year, summary, tags, repo, metrics, sections); the index and detail pages read them through the Astro content layer. Tests in `tests/profile.test.ts`, `tests/projects.test.ts` and `tests/constellations.test.ts` guard these invariants.
 
 ## Commands
 
@@ -40,12 +41,13 @@ npm run format    # prettier --write
 src/
   layouts/          # Base, Page, Project layouts
   components/       # Header, Footer, React islands, site UI
-  content/projects/ # 6 MDX case studies (01 Problem → 07 Lessons Learned)
-  lib/profile.ts    # single source of truth (all personal data)
+  content/projects/ # 6 MDX case studies (01 Problem → 07 Lessons Learned) — single source for projects
+  lib/profile.ts    # single source of truth (personal data)
+  lib/constellations.ts # real star catalog + scene builder for the hero sky
   lib/site.ts       # nav anchors, canonical URL helpers
   pages/            # index (single page with anchor sections) + projects/[slug]
   styles/global.css # Tailwind v4 theme tokens
-tests/              # vitest unit tests (profile invariants)
+tests/              # vitest unit tests (profile + projects + constellation invariants)
 e2e/                # Playwright smoke tests (desktop + mobile)
 ```
 
@@ -62,4 +64,7 @@ Static output in `dist/`. Compatible with Cloudflare Pages or Vercel. Domain: `a
 - **Astro 7 content layer**: collection config lives in `src/content.config.ts` with `glob()` loaders; entries are rendered with `render(entry)` from `astro:content`.
 - **Single-page layout**: everything lives on `/` as anchor sections (`#about`, `#projects`, `#security`, `#resume`, `#contact`); only project case studies are separate routes.
 - **Mobile nav is a native `<details>` disclosure** — zero JS.
-- **Constellation** uses a low-power WebGL canvas with reduced device-pixel ratio and `frameloop="demand"` on small screens.
+- **Hero sky is real astronomy**: 8 constellations (Orion, Ursa Major, Cassiopeia, Leo, Scorpius, Cygnus, Crux, Sagittarius) with Hipparcos positions and magnitudes; size/brightness derived from real magnitude. Events (supernova, black hole, satellite, variable stars, star birth, meteors) are declarative and data-driven.
+- **`prefers-reduced-motion`** freezes the sky (static frame, no events, no twinkle) and disables GSAP animations.
+- **Performance tiers**: mobile/low-end gets fewer stars, capped DPR and `frameloop="demand"`; the default canvas is `low-power` with instanced geometry.
+- **Projects come from MDX** (`getCollection('projects')`), not `profile.ts` — one source of truth, guarded by tests.
