@@ -11,8 +11,8 @@ import { SATELLITES } from '../src/lib/satellites';
 const PUBLIC_DIR = resolve(__dirname, '../public');
 
 describe('satellite catalog', () => {
-  it('contains the 7 historical satellites', () => {
-    expect(SATELLITES).toHaveLength(7);
+  it('contains the valid transparent satellites', () => {
+    expect(SATELLITES).toHaveLength(2);
   });
 
   it('has unique ids and names', () => {
@@ -59,10 +59,6 @@ describe('satellite catalog', () => {
   });
 
   it('covers the milestones it claims', () => {
-    expect(SATELLITES.find((s) => s.id === 'sputnik-1')?.milestone).toContain(
-      'First artificial satellite',
-    );
     expect(SATELLITES.find((s) => s.id === 'hubble')?.milestone).toContain('telescope');
-    expect(SATELLITES.find((s) => s.id === 'iss')?.milestone).toContain('Largest');
   });
 });

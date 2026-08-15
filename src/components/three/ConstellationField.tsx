@@ -8,9 +8,8 @@
  * The field has its own quiet life, with sparse, subtle events:
  *   - shooting stars (meteors)
  *   - supernovae: a real star flares and an expanding shockwave ring fades out
- *   - black holes: a dark core with a faint accretion disc that appears, sits,
- *     and dissolves
- *   - artificial satellites crossing in a straight line at constant speed
+ *   - black holes: a dark void whose gravity lenses the surrounding stars
+ *     into an Einstein ring (no emitted light — only the deformation)
  *   - variable stars (Betelgeuse, Antares) pulsing like real Cepheids
  *   - star births: a proto-star dimly brightens and settles
  *
@@ -25,11 +24,17 @@
  *    code is guarded at runtime).
  */
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import * as THREE from 'three';
 import { buildScene, type ConstellationScene, type SceneStar } from '../../lib/constellations';
+import { EINSTEIN_R, lensPoint, LENSING_GLSL } from '../../lib/lensing';
 
 type Vec3 = [number, number, number];
+
+interface HoleState {
+  position: THREE.Vector3;
+  strength: number;
+}
 
 function getMotionEnabled(): boolean {
   if (typeof window === 'undefined') return true;
@@ -46,13 +51,28 @@ const FIELD_VERT = /* glsl */ `
   attribute vec3 aColor;
   uniform float uTime;
   uniform float uScale;
+  uniform vec3 uHole;
+  uniform float uEinstein;
+  uniform float uHoleStrength;
   varying float vTwinkle;
   varying vec3 vColor;
+  ${LENSING_GLSL}
   void main() {
     vColor = aColor;
     float t = uTime * 1.6 + aPhase;
     vTwinkle = 0.6 + 0.4 * sin(t);
-    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+
+    vec3 p = position;
+    if (uHoleStrength > 0.0) {
+      p = lensed(p);
+      float r = length(p.xy - uHole.xy);
+      float ring = abs(r - uEinstein);
+      float boost = exp(-ring * ring * 12.0);
+      vTwinkle += boost * 1.6 * uHoleStrength;
+      vColor += vec3(boost * 0.4 * uHoleStrength);
+    }
+
+    vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_PointSize = aSize * uScale / max(-mv.z, 0.1);
     gl_Position = projectionMatrix * mv;
   }
@@ -69,7 +89,13 @@ const FIELD_FRAG = /* glsl */ `
   }
 `;
 
-function StarField({ quality }: { quality: 'high' | 'low' }) {
+function StarField({
+  quality,
+  hole,
+}: {
+  quality: 'high' | 'low';
+  hole: RefObject<HoleState | null>;
+}) {
   const { geometry, material } = useMemo(() => {
     const count = quality === 'high' ? 650 : 320;
     const positions = new Float32Array(count * 3);
@@ -101,7 +127,13 @@ function StarField({ quality }: { quality: 'high' | 'low' }) {
     geometry.setAttribute('aColor', new THREE.BufferAttribute(colors, 3));
 
     const material = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 }, uScale: { value: 900 } },
+      uniforms: {
+        uTime: { value: 0 },
+        uScale: { value: 900 },
+        uHole: { value: new THREE.Vector3() },
+        uEinstein: { value: EINSTEIN_R },
+        uHoleStrength: { value: 0 },
+      },
       vertexShader: FIELD_VERT,
       fragmentShader: FIELD_FRAG,
       transparent: true,
@@ -123,6 +155,11 @@ function StarField({ quality }: { quality: 'high' | 'low' }) {
 
   useFrame(({ clock }) => {
     material.uniforms.uTime.value = clock.elapsedTime;
+    const h = hole.current;
+    if (h) {
+      material.uniforms.uHole.value.copy(h.position);
+      material.uniforms.uHoleStrength.value = h.strength;
+    }
   });
 
   return <points geometry={geometry} material={material} frustumCulled={false} />;
@@ -132,7 +169,13 @@ function StarField({ quality }: { quality: 'high' | 'low' }) {
 /* Constellation clusters — instanced stars and asterism edges         */
 /* ------------------------------------------------------------------ */
 
-function ConstellationStars({ stars }: { stars: SceneStar[] }) {
+function ConstellationStars({
+  stars,
+  hole,
+}: {
+  stars: SceneStar[];
+  hole: RefObject<HoleState | null>;
+}) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const geo = useMemo(() => new THREE.SphereGeometry(0.5, 12, 12), []);
   const mat = useMemo(
@@ -146,29 +189,65 @@ function ConstellationStars({ stars }: { stars: SceneStar[] }) {
     [],
   );
 
-  useLayoutEffect(() => {
+  const base = useMemo(
+    () => stars.map((s) => new THREE.Vector3(s.position[0], s.position[1], s.position[2])),
+    [stars],
+  );
+  const radii = useMemo(() => stars.map((s) => s.radius), [stars]);
+  const lensedRef = useRef(false);
+
+  function write(strength: number) {
     const mesh = meshRef.current;
     if (!mesh) return;
     const dummy = new THREE.Object3D();
-    const color = new THREE.Color();
-    stars.forEach((s, i) => {
-      dummy.position.set(s.position[0], s.position[1], s.position[2]);
+    base.forEach((p, i) => {
+      dummy.position.copy(p);
+      if (strength > 0) lensPoint(dummy.position, p, hole.current!.position, EINSTEIN_R, strength);
       dummy.rotation.set(0, 0, 0);
-      dummy.scale.setScalar(s.radius * 2);
+      dummy.scale.setScalar(radii[i] * 2);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+  }
+
+  useLayoutEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const color = new THREE.Color();
+    stars.forEach((s, i) => {
       const v = s.brightness;
       color.setRGB(v, v, v);
       mesh.setColorAt(i, color);
     });
-    mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    write(0);
   }, [stars]);
+
+  useFrame(() => {
+    const h = hole.current;
+    const strength = h && h.strength > 0 ? h.strength : 0;
+    if (strength > 0) {
+      if (!lensedRef.current) {
+        write(strength);
+        lensedRef.current = true;
+      }
+    } else if (lensedRef.current) {
+      write(0);
+      lensedRef.current = false;
+    }
+  });
 
   return <instancedMesh ref={meshRef} args={[geo, mat, stars.length]} frustumCulled={false} />;
 }
 
-function ConstellationEdges({ scene }: { scene: ConstellationScene }) {
+function ConstellationEdges({
+  scene,
+  hole,
+}: {
+  scene: ConstellationScene;
+  hole: RefObject<HoleState | null>;
+}) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const geo = useMemo(() => new THREE.CylinderGeometry(1, 1, 1, 4, 1), []);
   const mat = useMemo(
@@ -183,18 +262,33 @@ function ConstellationEdges({ scene }: { scene: ConstellationScene }) {
   );
 
   const edges = scene.edges;
+  const base = useMemo(
+    () =>
+      edges.map((e) => ({
+        from: new THREE.Vector3(e.from[0], e.from[1], e.from[2]),
+        to: new THREE.Vector3(e.to[0], e.to[1], e.to[2]),
+      })),
+    [edges],
+  );
+  const lensedRef = useRef(false);
 
-  useLayoutEffect(() => {
+  function write(strength: number) {
     const mesh = meshRef.current;
     if (!mesh) return;
     const dummy = new THREE.Object3D();
     const up = new THREE.Vector3(0, 1, 0);
-    edges.forEach((e, i) => {
-      const start = new THREE.Vector3(e.from[0], e.from[1], e.from[2]);
-      const end = new THREE.Vector3(e.to[0], e.to[1], e.to[2]);
-      const mid = start.clone().add(end).multiplyScalar(0.5);
-      const length = start.distanceTo(end);
-      const dir = end.clone().sub(start).normalize();
+    const a = new THREE.Vector3();
+    const b = new THREE.Vector3();
+    base.forEach((edge, i) => {
+      a.copy(edge.from);
+      b.copy(edge.to);
+      if (strength > 0) {
+        lensPoint(a, edge.from, hole.current!.position, EINSTEIN_R, strength);
+        lensPoint(b, edge.to, hole.current!.position, EINSTEIN_R, strength);
+      }
+      const mid = a.clone().add(b).multiplyScalar(0.5);
+      const length = a.distanceTo(b);
+      const dir = b.clone().sub(a).normalize();
       dummy.position.copy(mid);
       dummy.quaternion.setFromUnitVectors(up, dir);
       dummy.scale.set(0.008, length, 0.008);
@@ -202,17 +296,38 @@ function ConstellationEdges({ scene }: { scene: ConstellationScene }) {
       mesh.setMatrixAt(i, dummy.matrix);
     });
     mesh.instanceMatrix.needsUpdate = true;
-  }, [edges]);
+  }
+
+  useLayoutEffect(() => {
+    write(0);
+  }, [base]);
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
     mat.opacity = 0.2 + 0.08 * Math.sin(t * 0.45);
+    const h = hole.current;
+    const strength = h && h.strength > 0 ? h.strength : 0;
+    if (strength > 0) {
+      if (!lensedRef.current) {
+        write(strength);
+        lensedRef.current = true;
+      }
+    } else if (lensedRef.current) {
+      write(0);
+      lensedRef.current = false;
+    }
   });
 
   return <instancedMesh ref={meshRef} args={[geo, mat, edges.length]} frustumCulled={false} />;
 }
 
-function SkyLinks({ links }: { links: ConstellationScene['links'] }) {
+function SkyLinks({
+  links,
+  hole,
+}: {
+  links: ConstellationScene['links'];
+  hole: RefObject<HoleState | null>;
+}) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const geo = useMemo(() => new THREE.CylinderGeometry(1, 1, 1, 3, 1), []);
   const mat = useMemo(
@@ -226,17 +341,33 @@ function SkyLinks({ links }: { links: ConstellationScene['links'] }) {
     [],
   );
 
-  useLayoutEffect(() => {
+  const base = useMemo(
+    () =>
+      links.map((l) => ({
+        from: new THREE.Vector3(l.from[0], l.from[1], l.from[2]),
+        to: new THREE.Vector3(l.to[0], l.to[1], l.to[2]),
+      })),
+    [links],
+  );
+  const lensedRef = useRef(false);
+
+  function write(strength: number) {
     const mesh = meshRef.current;
     if (!mesh) return;
     const dummy = new THREE.Object3D();
     const up = new THREE.Vector3(0, 1, 0);
-    links.forEach((l, i) => {
-      const start = new THREE.Vector3(l.from[0], l.from[1], l.from[2]);
-      const end = new THREE.Vector3(l.to[0], l.to[1], l.to[2]);
-      const mid = start.clone().add(end).multiplyScalar(0.5);
-      const length = start.distanceTo(end);
-      const dir = end.clone().sub(start).normalize();
+    const a = new THREE.Vector3();
+    const b = new THREE.Vector3();
+    base.forEach((link, i) => {
+      a.copy(link.from);
+      b.copy(link.to);
+      if (strength > 0) {
+        lensPoint(a, link.from, hole.current!.position, EINSTEIN_R, strength);
+        lensPoint(b, link.to, hole.current!.position, EINSTEIN_R, strength);
+      }
+      const mid = a.clone().add(b).multiplyScalar(0.5);
+      const length = a.distanceTo(b);
+      const dir = b.clone().sub(a).normalize();
       dummy.position.copy(mid);
       dummy.quaternion.setFromUnitVectors(up, dir);
       dummy.scale.set(0.0035, length, 0.0035);
@@ -244,7 +375,25 @@ function SkyLinks({ links }: { links: ConstellationScene['links'] }) {
       mesh.setMatrixAt(i, dummy.matrix);
     });
     mesh.instanceMatrix.needsUpdate = true;
-  }, [links]);
+  }
+
+  useLayoutEffect(() => {
+    write(0);
+  }, [base]);
+
+  useFrame(() => {
+    const h = hole.current;
+    const strength = h && h.strength > 0 ? h.strength : 0;
+    if (strength > 0) {
+      if (!lensedRef.current) {
+        write(strength);
+        lensedRef.current = true;
+      }
+    } else if (lensedRef.current) {
+      write(0);
+      lensedRef.current = false;
+    }
+  });
 
   return <instancedMesh ref={meshRef} args={[geo, mat, links.length]} frustumCulled={false} />;
 }
@@ -300,7 +449,7 @@ function Supernova({ stars }: { stars: SceneStar[] }) {
 
   const state = useRef({
     active: false,
-    timer: 6 + Math.random() * 7,
+    timer: 8 + Math.random() * 8,
     age: 0,
     dur: 2.6,
     target: null as SceneStar | null,
@@ -335,7 +484,7 @@ function Supernova({ stars }: { stars: SceneStar[] }) {
     const p = s.age / s.dur;
     if (!s.target) {
       s.active = false;
-      s.timer = 8 + Math.random() * 10;
+      s.timer = 8 + Math.random() * 8;
       return;
     }
 
@@ -343,50 +492,50 @@ function Supernova({ stars }: { stars: SceneStar[] }) {
     flare.position.copy(pos);
     ring.position.copy(pos);
 
-    // flare: quick bloom, then a long fade back to the normal star
+    // flare: quick, small bloom — a crisp point, then a long fade back
     let opacity: number;
     let scale: number;
     if (p < 0.12) {
       opacity = p / 0.12;
-      scale = 0.5 + p * 40;
+      scale = 0.5 + p * 10;
     } else if (p < 0.2) {
       opacity = 1;
-      scale = 5.2;
+      scale = 1.7;
     } else {
       const q = (p - 0.2) / 0.8;
       opacity = Math.max(0, 1 - q * q);
-      scale = Math.max(0.4, 5.2 - 4.8 * q);
+      scale = Math.max(0.35, 1.7 - 1.35 * q);
     }
     fMat.opacity = opacity;
     flare.visible = opacity > 0.01;
-    flare.scale.setScalar(scale * 0.05);
+    flare.scale.setScalar(scale * 0.04);
 
-    // expanding shockwave ring
+    // expanding shockwave ring — ultra thin
     if (p > 0.1) {
       const q = Math.min((p - 0.1) / 0.9, 1);
       ring.visible = true;
       ring.lookAt(camera.position);
-      const grow = 0.5 + q * 5.5;
+      const grow = 0.5 + q * 1.7;
       ring.scale.set(grow, grow, grow);
-      rMat.opacity = 0.35 * (1 - q) * Math.min(1, (p - 0.1) / 0.08);
+      rMat.opacity = 0.3 * (1 - q) * Math.min(1, (p - 0.1) / 0.08);
     } else {
       ring.visible = false;
     }
 
     if (p >= 1) {
       s.active = false;
-      s.timer = 9 + Math.random() * 13;
+      s.timer = 8 + Math.random() * 8;
       flare.visible = false;
       ring.visible = false;
     }
   });
 
-  const ringGeo = useMemo(() => new THREE.RingGeometry(0.55, 0.7, 40), []);
+  const ringGeo = useMemo(() => new THREE.RingGeometry(0.585, 0.6, 48), []);
 
   return (
     <group>
       <mesh ref={flareRef} visible={false}>
-        <sphereGeometry args={[0.5, 12, 12]} />
+        <sphereGeometry args={[0.5, 24, 24]} />
         <meshBasicMaterial
           ref={flareMatRef}
           color="#f0f0f6"
@@ -411,17 +560,13 @@ function Supernova({ stars }: { stars: SceneStar[] }) {
   );
 }
 
-function BlackHole() {
+function BlackHole({ hole }: { hole: RefObject<HoleState | null> }) {
   const groupRef = useRef<THREE.Group>(null);
-  const coreMatRef = useRef<THREE.MeshBasicMaterial>(null);
-  const discRef = useRef<THREE.Mesh>(null);
-  const discMatRef = useRef<THREE.MeshBasicMaterial>(null);
   const motion = useRef(getMotionEnabled());
-  const camera = useThree((s) => s.camera);
 
   const state = useRef({
     active: false,
-    timer: 16 + Math.random() * 12,
+    timer: 14 + Math.random() * 8,
     age: 0,
     dur: 4.2,
     position: [0, 0, 0] as Vec3,
@@ -440,12 +585,10 @@ function BlackHole() {
 
   useFrame((_, delta) => {
     const group = groupRef.current;
-    const coreMat = coreMatRef.current;
-    const disc = discRef.current;
-    const discMat = discMatRef.current;
-    if (!group || !coreMat || !disc || !discMat) return;
+    if (!group) return;
     if (!motion.current) {
       group.visible = false;
+      if (hole.current) hole.current.strength = 0;
       return;
     }
 
@@ -455,6 +598,7 @@ function BlackHole() {
     if (!s.active) {
       s.timer -= dt;
       group.visible = false;
+      if (hole.current) hole.current.strength = 0;
       if (s.timer > 0) return;
       spawn();
     }
@@ -468,152 +612,26 @@ function BlackHole() {
 
     group.visible = true;
     group.position.set(s.position[0], s.position[1], s.position[2]);
-    coreMat.opacity = envelope;
-    disc.lookAt(camera.position);
-    disc.rotation.z += dt * 0.6;
-    discMat.opacity = envelope * 0.35;
-    disc.scale.setScalar(1 + p * 0.15);
+    // grow the dark void as the hole strengthens; no emitted light
+    group.scale.setScalar(0.2 + 0.8 * envelope);
+    if (hole.current) {
+      hole.current.position.copy(group.position);
+      hole.current.strength = envelope;
+    }
 
     if (p >= 1) {
       s.active = false;
-      s.timer = 18 + Math.random() * 12;
+      s.timer = 14 + Math.random() * 8;
       group.visible = false;
+      if (hole.current) hole.current.strength = 0;
     }
   });
 
   return (
     <group ref={groupRef} visible={false}>
       <mesh>
-        <sphereGeometry args={[0.075, 16, 16]} />
-        <meshBasicMaterial ref={coreMatRef} color="#000000" transparent opacity={0} depthWrite />
-      </mesh>
-      <mesh ref={discRef}>
-        <torusGeometry args={[0.16, 0.014, 8, 32]} />
-        <meshBasicMaterial
-          ref={discMatRef}
-          color="#9db3cc"
-          transparent
-          opacity={0}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-        />
-      </mesh>
-    </group>
-  );
-}
-
-function Satellite() {
-  const trailRef = useRef<THREE.Mesh>(null);
-  const headRef = useRef<THREE.Mesh>(null);
-  const trailMatRef = useRef<THREE.MeshBasicMaterial>(null);
-  const headMatRef = useRef<THREE.MeshBasicMaterial>(null);
-  const motion = useRef(getMotionEnabled());
-
-  const state = useRef({
-    active: false,
-    timer: 12 + Math.random() * 8,
-    age: 0,
-    dur: 4.5,
-    p0: [0, 0, 0] as Vec3,
-    dir: [1, 0, 0] as Vec3,
-    speed: 2.2,
-  });
-
-  function spawn() {
-    const s = state.current;
-    const fromLeft = Math.random() < 0.5;
-    const x = fromLeft ? -5.5 - Math.random() * 1.5 : 5.5 + Math.random() * 1.5;
-    const y = (Math.random() * 2 - 1) * 2.8;
-    const z = -1.4 + Math.random() * 1.2;
-    const angle = Math.random() * 0.9 - 0.45;
-    const dirX = fromLeft ? Math.cos(angle) : -Math.cos(angle);
-    const dirY = Math.sin(angle);
-    s.p0 = [x, y, z];
-    s.dir = [dirX, dirY, 0];
-    s.speed = 2.0 + Math.random() * 0.7;
-    s.active = true;
-    s.age = 0;
-  }
-
-  useFrame((_, delta) => {
-    const trail = trailRef.current;
-    const head = headRef.current;
-    const trailMat = trailMatRef.current;
-    const headMat = headMatRef.current;
-    if (!trail || !head || !trailMat || !headMat) return;
-    if (!motion.current) {
-      trail.visible = false;
-      head.visible = false;
-      return;
-    }
-
-    const s = state.current;
-    const dt = Math.min(delta, 0.05);
-
-    if (!s.active) {
-      s.timer -= dt;
-      trail.visible = false;
-      head.visible = false;
-      if (s.timer > 0) return;
-      spawn();
-    }
-
-    s.age += dt;
-    const travelled = s.age * s.speed;
-    const px = s.p0[0] + s.dir[0] * travelled;
-    const py = s.p0[1] + s.dir[1] * travelled;
-    const pz = s.p0[2];
-
-    const edge = Math.min(Math.min(Math.abs(px), Math.abs(py)) / 1.2, 1);
-    const alpha = 0.35 * Math.max(0.05, edge);
-
-    trail.visible = true;
-    head.visible = true;
-    head.position.set(px, py, pz);
-
-    // short trail extending backward along the direction of travel
-    const TRAIL = 0.55;
-    const dir = new THREE.Vector3(s.dir[0], s.dir[1], s.dir[2]);
-    const tail = new THREE.Vector3(px, py, pz).addScaledVector(dir, -TRAIL);
-    const mid = new THREE.Vector3(px, py, pz).add(tail).multiplyScalar(0.5);
-    trail.position.copy(mid);
-    trail.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
-    trail.scale.set(1, TRAIL, 1);
-
-    trailMat.opacity = alpha;
-    headMat.opacity = alpha * 1.6;
-
-    if (s.age >= s.dur) {
-      s.active = false;
-      s.timer = 14 + Math.random() * 10;
-      trail.visible = false;
-      head.visible = false;
-    }
-  });
-
-  return (
-    <group>
-      <mesh ref={trailRef} visible={false}>
-        <cylinderGeometry args={[0.008, 0.008, 1, 6, 1]} />
-        <meshBasicMaterial
-          ref={trailMatRef}
-          color="#dfe3ea"
-          transparent
-          opacity={0}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-        />
-      </mesh>
-      <mesh ref={headRef} visible={false}>
-        <sphereGeometry args={[0.02, 8, 8]} />
-        <meshBasicMaterial
-          ref={headMatRef}
-          color="#f4f4f7"
-          transparent
-          opacity={0}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-        />
+        <sphereGeometry args={[0.4, 24, 24]} />
+        <meshBasicMaterial color="#000000" depthWrite />
       </mesh>
     </group>
   );
@@ -626,11 +644,11 @@ function StarBirth() {
 
   const state = useRef({
     active: false,
-    timer: 12 + Math.random() * 8,
+    timer: 9 + Math.random() * 7,
     age: 0,
     dur: 3.2,
     position: [0, 0, 0] as Vec3,
-    finalOpacity: 0.5,
+    finalOpacity: 0.7,
   });
 
   function spawn() {
@@ -640,7 +658,7 @@ function StarBirth() {
       (Math.random() * 2 - 1) * 2.8,
       -1.6 + Math.random() * 1.2,
     ];
-    s.finalOpacity = 0.25 + Math.random() * 0.3;
+    s.finalOpacity = 0.45 + Math.random() * 0.35;
     s.active = true;
     s.age = 0;
   }
@@ -686,14 +704,14 @@ function StarBirth() {
 
     if (p >= 1) {
       s.active = false;
-      s.timer = 13 + Math.random() * 10;
+      s.timer = 9 + Math.random() * 7;
       mesh.visible = false;
     }
   });
 
   return (
     <mesh ref={meshRef} visible={false}>
-      <sphereGeometry args={[0.011, 8, 8]} />
+      <sphereGeometry args={[0.02, 12, 12]} />
       <meshBasicMaterial
         ref={matRef}
         color="#ececf2"
@@ -776,7 +794,7 @@ function Meteor({ seed }: { seed: number }) {
 
     if (s.age >= s.dur) {
       s.active = false;
-      s.spawnTimer = 4 + Math.random() * 4;
+      s.spawnTimer = 3 + Math.random() * 3;
       group.current.visible = false;
     }
   });
@@ -784,7 +802,7 @@ function Meteor({ seed }: { seed: number }) {
   return (
     <group ref={group} visible={false}>
       <mesh position={[0, -0.45, 0]}>
-        <cylinderGeometry args={[0.006, 0.006, 0.9, 6, 1]} />
+        <cylinderGeometry args={[0.009, 0.009, 1.2, 6, 1]} />
         <meshBasicMaterial
           ref={trailMat}
           color="#d4d4d8"
@@ -795,7 +813,7 @@ function Meteor({ seed }: { seed: number }) {
         />
       </mesh>
       <mesh>
-        <sphereGeometry args={[0.032, 12, 12]} />
+        <sphereGeometry args={[0.04, 12, 12]} />
         <meshBasicMaterial
           ref={headMat}
           color="#e8e8ec"
@@ -818,6 +836,7 @@ function SkyScene({ quality }: { quality: 'high' | 'low' }) {
   const group = useRef<THREE.Group>(null);
   const motion = useRef(getMotionEnabled());
   const pointer = useRef({ x: 0, y: 0 });
+  const hole = useRef<HoleState>({ position: new THREE.Vector3(), strength: 0 });
 
   useEffect(() => {
     const onPointerMove = (e: PointerEvent) => {
@@ -852,20 +871,14 @@ function SkyScene({ quality }: { quality: 'high' | 'low' }) {
 
   return (
     <group ref={group} rotation={[0.08, 0, 0]}>
-      <StarField quality={quality} />
-      <SkyLinks links={scene.links} />
-      <ConstellationStars stars={scene.stars} />
-      <ConstellationEdges scene={scene} />
-      <VariableStar
-        position={variableStars.betelgeuse}
-        period={12}
-        phase={0.5}
-        baseOpacity={0.55}
-      />
-      <VariableStar position={variableStars.antares} period={17} phase={2.4} baseOpacity={0.45} />
+      <StarField quality={quality} hole={hole} />
+      <SkyLinks links={scene.links} hole={hole} />
+      <ConstellationStars stars={scene.stars} hole={hole} />
+      <ConstellationEdges scene={scene} hole={hole} />
+      <VariableStar position={variableStars.betelgeuse} period={12} phase={0.5} baseOpacity={0.7} />
+      <VariableStar position={variableStars.antares} period={17} phase={2.4} baseOpacity={0.6} />
       <Supernova stars={scene.stars} />
-      <BlackHole />
-      <Satellite />
+      <BlackHole hole={hole} />
       <StarBirth />
       <Meteor seed={0.4} />
       <Meteor seed={0.9} />

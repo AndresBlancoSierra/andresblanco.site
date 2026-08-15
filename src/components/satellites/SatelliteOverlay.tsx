@@ -20,9 +20,8 @@ function easeInOutQuad(t: number): number {
 
 /**
  * Foreground overlay: real historical satellites crossing the viewport slowly,
- * rendered above all site text. Uses `mix-blend-mode: screen` so the black
- * image background disappears and only the satellite itself adds light.
- * Disabled under `prefers-reduced-motion`.
+ * rendered above all site text at full opacity. The images are transparent PNGs
+ * so they float without a box. Disabled under `prefers-reduced-motion`.
  */
 export function SatelliteOverlay() {
   const imgRef = useRef<HTMLImageElement>(null);
@@ -80,7 +79,7 @@ export function SatelliteOverlay() {
       const fade = q < FADE ? q / FADE : q > 1 - FADE ? (1 - q) / FADE : 1;
 
       img.style.transform = `translate3d(calc(${x}vw - 50%), ${y}px, 0)`;
-      img.style.opacity = String(0.45 * fade);
+      img.style.opacity = String(fade);
     };
 
     raf = requestAnimationFrame(frame);
@@ -93,13 +92,12 @@ export function SatelliteOverlay() {
         ref={imgRef}
         alt=""
         draggable={false}
-        className="mix-blend-screen select-none"
+        className="select-none"
         style={{
           height: 'clamp(70px, 16vh, 150px)',
           width: 'auto',
           opacity: 0,
           visibility: 'hidden',
-          filter: 'grayscale(1) brightness(1.05) contrast(1.05)',
           willChange: 'transform, opacity',
           position: 'fixed',
           top: 0,

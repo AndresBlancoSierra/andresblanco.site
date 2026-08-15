@@ -45,12 +45,13 @@ src/
   content/projects/ # 6 MDX case studies (01 Problem → 07 Lessons Learned) — single source for projects
   lib/profile.ts    # single source of truth (personal data)
   lib/constellations.ts # real star catalog + scene builder for the hero sky
+  lib/lensing.ts   # Einstein-ring lensing math shared by shader and scene
   lib/satellites.ts # real historical satellites (launch date, agency, milestone, source)
   lib/site.ts       # nav anchors, canonical URL helpers
   pages/            # index (single page with anchor sections) + projects/[slug]
   styles/global.css # Tailwind v4 theme tokens
 tests/              # vitest unit tests (profile + projects + constellations + satellites)
-public/satellites/  # grayscale PNGs of the 7 spacecraft (NASA/Commons, traceable)
+public/satellites/  # transparent PNGs of the spacecraft (NASA/Commons, traceable)
 e2e/                # Playwright smoke tests (desktop + mobile)
 ```
 
@@ -67,8 +68,9 @@ Static output in `dist/`. Compatible with Cloudflare Pages or Vercel. Domain: `a
 - **Astro 7 content layer**: collection config lives in `src/content.config.ts` with `glob()` loaders; entries are rendered with `render(entry)` from `astro:content`.
 - **Single-page layout**: everything lives on `/` as anchor sections (`#about`, `#projects`, `#security`, `#resume`, `#contact`); only project case studies are separate routes.
 - **Mobile nav is a native `<details>` disclosure** — zero JS.
-- **Hero sky is real astronomy**: 8 constellations (Orion, Ursa Major, Cassiopeia, Leo, Scorpius, Cygnus, Crux, Sagittarius) with Hipparcos positions and magnitudes; size/brightness derived from real magnitude. Events (supernova, black hole, satellite, variable stars, star birth, meteors) are declarative and data-driven.
+- **Hero sky is real astronomy**: 8 constellations (Orion, Ursa Major, Cassiopeia, Leo, Scorpius, Cygnus, Crux, Sagittarius) with Hipparcos positions and magnitudes; size/brightness derived from real magnitude. Events (supernova, black hole, variable stars, star birth, meteors) are declarative and data-driven.
 - **`prefers-reduced-motion`** freezes the sky (static frame, no events, no twinkle), disables GSAP animations and hides the satellite overlay.
-- **Satellite overlay**: historical spacecraft (Sputnik-1, Explorer-1, Vanguard-1, Telstar-1, Skylab, Hubble, ISS) cross the viewport slowly in a `pointer-events-none` fixed layer above all text; `mix-blend-mode: screen` hides their black backgrounds, `grayscale()` keeps them monochrome, and the catalog links each to its Commons source and license.
+- **Black hole = dark void + lensing, no light**: when active, the star field shader and the constellation instances bend nearby stars into an Einstein ring around the void (`src/lib/lensing.ts`), so the deformation itself is the effect — nothing emits light.
+- **Satellite overlay**: transparent PNGs of real spacecraft (Explorer-1, Hubble) cross the viewport slowly in a `pointer-events-none` fixed layer above all text at full opacity; the catalog links each to its Commons source and license.
 - **Performance tiers**: mobile/low-end gets fewer stars, capped DPR and `frameloop="demand"`; the default canvas is `low-power` with instanced geometry.
 - **Projects come from MDX** (`getCollection('projects')`), not `profile.ts` — one source of truth, guarded by tests.
