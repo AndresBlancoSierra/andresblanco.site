@@ -3,9 +3,8 @@ import { expect, test } from '@playwright/test';
 test('home renders the identity and key CTAs', async ({ page }) => {
   await page.goto('/');
   await expect(page).toHaveTitle(/Andres Blanco/);
-  await expect(page.getByRole('heading', { level: 1 })).toContainText(
-    'Turning curiosity into things that work',
-  );
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Andres Blanco');
+  await expect(page.getByText('Turning curiosity into reality.')).toBeVisible();
   await expect(page.getByRole('link', { name: /view projects/i })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Resume', exact: true }).first()).toBeVisible();
 });
@@ -57,6 +56,9 @@ test('security section is evidence-based, not a tool list', async ({ page }) => 
 
 test('contact section exposes real reach-me links', async ({ page }) => {
   await page.goto('/');
+  await expect(
+    page.getByRole('link', { name: /^phone \+57 312 308 7133$/i }),
+  ).toBeVisible();
   await expect(
     page.getByRole('link', { name: /^email andresfelipeblancos15@gmail.com$/i }),
   ).toBeVisible();

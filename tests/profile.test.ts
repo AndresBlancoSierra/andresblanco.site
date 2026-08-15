@@ -19,6 +19,7 @@ describe('SITE', () => {
     expect(SITE.name).toContain('Andres');
     expect(SITE.name).toContain('Blanco');
     expect(SITE.email).toBe('andresfelipeblancos15@gmail.com');
+    expect(SITE.phone).toBe('+57 312 308 7133');
     expect(SITE.githubHandle).toBe('AndresBlancoSierra');
     expect(SITE.location).toContain('Bogotá');
   });

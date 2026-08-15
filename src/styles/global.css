@@ -28,14 +28,9 @@
   --color-line: #1f1f23;
   --color-line-strong: #2e2e33;
 
-  /* A single informational accent: system signal blue, desaturated */
+  /* A single informational accent: system signal blue, desaturated.
+     Used only where it carries meaning (contact actions) and for focus. */
   --color-signal: #7da2c9;
-  --color-signal-dim: #4a6a8a;
-
-  /* Semantic states (used sparingly and only when meaningful) */
-  --color-ok: #7cb48f;
-  --color-warn: #c9a97d;
-  --color-err: #c97d7d;
 
   /* Typography scale */
   --text-xs: 0.75rem;

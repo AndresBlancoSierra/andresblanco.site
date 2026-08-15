@@ -5,10 +5,14 @@
  * post-processing, no unnecessary objects. It should read as an abstract
  * system map, not as a particles demo.
  *
+ * Motion stays slow and editorial: nodes drift, edges breathe, the whole
+ * group tilts gently and responds subtly to the pointer. It is never loud.
+ *
  * Performance & accessibility decisions:
  *  - Rendered on demand only in the hero (island via client:visible).
- *  - Quality tier adapts to device (mobile + low-capability → fewer nodes).
- *  - Respects prefers-reduced-motion by rendering a static frame.
+ *  - Quality tier adapts to device (mobile + low-capability → lower dpr).
+ *  - Respects prefers-reduced-motion by rendering a static frame (any
+ *    animation code is skipped at runtime via useFrame guards).
  */
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -78,9 +82,10 @@ function Node({ position, seed }: { position: [number, number, number]; seed: nu
     if (!ref.current) return;
     if (!motion.current) return;
     const t = state.clock.elapsedTime;
-    const amp = 0.02;
-    ref.current.position.x = position[0] + Math.sin(t * 0.3 + seed) * amp;
-    ref.current.position.y = position[1] + Math.cos(t * 0.25 + seed * 1.7) * amp;
+    const amp = 0.06;
+    ref.current.position.x = position[0] + Math.sin(t * 0.35 + seed) * amp;
+    ref.current.position.y = position[1] + Math.cos(t * 0.28 + seed * 1.7) * amp;
+    ref.current.position.z = position[2] + Math.sin(t * 0.22 + seed * 0.6) * (amp * 0.5);
   });
 
   return (
@@ -98,9 +103,9 @@ function Edge({ from, to }: { from: [number, number, number]; to: [number, numbe
   useFrame((state) => {
     if (!ref.current) return;
     if (!motion.current) return;
-    // subtle opacity breathing: informative, not decorative
+    // gentle opacity breathing: informative, not decorative
     const t = state.clock.elapsedTime;
-    const m = 0.1 + (Math.sin(t * 0.4 + from[0] * 3) + 1) * 0.04;
+    const m = 0.12 + (Math.sin(t * 0.4 + from[0] * 3) + 1) * 0.09;
     (ref.current.material as THREE.MeshBasicMaterial).opacity = m;
   });
 
@@ -123,6 +128,18 @@ function Edge({ from, to }: { from: [number, number, number]; to: [number, numbe
 }
 
 function ConstellationGraph() {
+  const group = useRef<THREE.Group>(null);
+  const motion = useRef(getMotionEnabled());
+
+  useFrame((state) => {
+    if (!group.current) return;
+    if (!motion.current) return;
+    const t = state.clock.elapsedTime;
+    // slow, subtle tilt of the whole map
+    group.current.rotation.y = Math.sin(t * 0.08) * 0.06;
+    group.current.rotation.z = Math.sin(t * 0.05) * 0.015;
+  });
+
   const planes = useMemo(buildPlanes, []);
   const allEdges = useMemo(() => {
     const out: { from: [number, number, number]; to: [number, number, number] }[] = [];
@@ -140,7 +157,7 @@ function ConstellationGraph() {
   }, [planes]);
 
   return (
-    <group rotation={[0.08, 0, 0]}>
+    <group ref={group} rotation={[0.08, 0, 0]}>
       {allEdges.map((e, i) => (
         <Edge key={`e${i}`} from={e.from} to={e.to} />
       ))}
@@ -158,7 +175,34 @@ function ConstellationGraph() {
 }
 
 function Scene() {
-  return <ConstellationGraph />;
+  const group = useRef<THREE.Group>(null);
+  const motion = useRef(getMotionEnabled());
+  const pointer = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const onPointerMove = (e: PointerEvent) => {
+      pointer.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointer.current.y = (e.clientY / window.innerHeight) * 2 - 1;
+    };
+    window.addEventListener('pointermove', onPointerMove);
+    return () => window.removeEventListener('pointermove', onPointerMove);
+  }, []);
+
+  useFrame(() => {
+    if (!group.current) return;
+    if (!motion.current) return;
+    // subtle parallax toward the pointer, eased
+    const tx = pointer.current.x * 0.15;
+    const ty = -pointer.current.y * 0.1;
+    group.current.position.x += (tx - group.current.position.x) * 0.04;
+    group.current.position.y += (ty - group.current.position.y) * 0.04;
+  });
+
+  return (
+    <group ref={group}>
+      <ConstellationGraph />
+    </group>
+  );
 }
 
 export function ConstellationField() {
@@ -170,6 +214,7 @@ export function ConstellationField() {
       ? 'low'
       : 'high',
   );
+  const motion = useRef(getMotionEnabled());
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');
@@ -185,8 +230,8 @@ export function ConstellationField() {
       style={{ opacity: 0.85 }}
     >
       <Canvas
-        frameloop={quality === 'high' ? 'always' : 'demand'}
-        dpr={[1, 1.5]}
+        frameloop={motion.current ? 'always' : 'demand'}
+        dpr={quality === 'high' ? [1, 1.5] : [1, 1]}
         camera={{ position: [0, 0, 5], fov: 50 }}
         gl={{
           antialias: true,

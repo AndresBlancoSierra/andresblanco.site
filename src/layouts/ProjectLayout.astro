@@ -23,7 +23,7 @@ const { title, year, summary, tags, repo, metrics } = Astro.props;
 <article class="mx-auto max-w-4xl px-6 pt-28 pb-20">
   <!-- header -->
   <header class="mb-12">
-    <p class="tech-label--signal mb-4 flex items-center gap-2">
+    <p class="tech-label mb-4 flex items-center gap-2">
       <span aria-hidden="true">case study /</span>
       <span>{year}</span>
     </p>
@@ -44,7 +44,7 @@ const { title, year, summary, tags, repo, metrics } = Astro.props;
       metrics.length > 0 && (
         <div class="mb-6 flex flex-wrap gap-3">
           {metrics.map((m) => (
-            <span class="border border-line bg-bg-inset px-3 py-1.5 font-mono text-xs text-ok">
+            <span class="border border-line bg-bg-inset px-3 py-1.5 font-mono text-xs text-fg-dim">
               {m}
             </span>
           ))}
@@ -55,7 +55,7 @@ const { title, year, summary, tags, repo, metrics } = Astro.props;
       href={repo}
       target="_blank"
       rel="noopener noreferrer"
-      class="inline-flex items-center gap-2 font-mono text-sm text-fg-dim transition-colors hover:text-signal"
+      class="inline-flex items-center gap-2 font-mono text-sm text-fg-dim transition-colors hover:text-fg"
     >
       <span aria-hidden="true">⌥</span> github.com/{new URL(repo).pathname.slice(1)}
     </a>
@@ -70,7 +70,7 @@ const { title, year, summary, tags, repo, metrics } = Astro.props;
 
   <!-- prev/next -->
   <nav class="mt-16 border-t border-line pt-6 font-mono text-sm" aria-label="More projects">
-    <a href="/#projects" class="text-fg-dim transition-colors hover:text-signal">
+    <a href="/#projects" class="text-fg-dim transition-colors hover:text-fg">
       ← all projects
     </a>
   </nav>
@@ -132,7 +132,7 @@ const { title, year, summary, tags, repo, metrics } = Astro.props;
     content: '—';
     position: absolute;
     left: 0;
-    color: var(--color-signal);
+    color: var(--color-fg-dim);
   }
   :global(.prose-custom strong) {
     color: var(--color-fg);

@@ -12,6 +12,7 @@ import {
   LEADERSHIP,
 } from '../lib/profile';
 import { ConstellationField } from '../components/three/ConstellationField';
+import ProjectMark from '../components/projects/ProjectMark';
 
 const practices = [
   {
@@ -33,6 +34,11 @@ const practices = [
     area: 'Non-root containers',
     evidence:
       'Docker images for desktop apps (SKlauncher/Minecraft, Wine games) run as non-root with resource limits, X11 permissions reverted after use.',
+  },
+  {
+    area: 'Self-hosted password manager',
+    evidence:
+      'Vaultwarden (Bitwarden-compatible) self-hosted on a Raspberry Pi at home, reachable only through a Cloudflare Tunnel — no open ports, no public IP exposed.',
   },
   {
     area: 'Encrypted, versioned backups',
@@ -60,15 +66,19 @@ const learning = [
       <ConstellationField client:visible />
     </div>
 
-    <div class="mx-auto w-full max-w-6xl px-6 py-28">
+    <div class="mx-auto w-full max-w-4xl px-6 py-28">
       <div class="max-w-3xl">
         <p class="tech-label mb-8">{SITE.headline}</p>
 
         <h1
-          class="max-w-3xl font-sans text-4xl font-semibold leading-[1.05] tracking-tight text-fg sm:text-5xl lg:text-6xl"
+          class="max-w-3xl font-sans text-5xl font-semibold leading-[1.05] tracking-tight text-fg sm:text-6xl lg:text-7xl"
         >
-          Turning curiosity into things that work.
+          Andres Blanco
         </h1>
+
+        <p class="mt-6 max-w-2xl font-sans text-xl font-medium text-fg sm:text-2xl">
+          Turning curiosity into reality.
+        </p>
 
         <p
           class="mt-8 max-w-2xl font-sans text-xl font-normal leading-snug text-fg-muted sm:text-2xl"
@@ -103,13 +113,13 @@ const learning = [
 
   <!-- ============ ABOUT ============ -->
   <section id="about" class="border-t border-line">
-    <div class="mx-auto max-w-6xl px-6 py-24">
+    <div class="mx-auto max-w-4xl px-6 py-24">
       <p class="tech-label mb-4">about / who I am</p>
       <h2 class="mb-12 font-mono text-3xl tracking-tight text-fg sm:text-4xl">About</h2>
 
-      <div class="grid gap-10 lg:grid-cols-5">
+      <div class="grid gap-10 lg:grid-cols-2">
         <!-- narrative -->
-        <div class="space-y-6 lg:col-span-3">
+        <div class="space-y-6">
           <p class="text-lg leading-relaxed text-fg-muted">
             I'm a 7th-semester Systems Engineering student at <span class="text-fg"
               >Universidad EAN</span
@@ -135,7 +145,7 @@ const learning = [
               {
                 DOMAINS.map((d) => (
                   <li class="flex items-baseline gap-3 font-mono text-sm">
-                    <span class="text-signal">◆</span>
+                    <span class="text-fg-dim">◆</span>
                     <span class="text-fg">{d.label}</span>
                     <span class="text-fg-dim">— {d.detail}</span>
                   </li>
@@ -163,7 +173,7 @@ const learning = [
         </div>
 
         <!-- side column: education, languages, honors -->
-        <aside class="space-y-8 lg:col-span-2">
+        <aside class="space-y-8">
           <div>
             <h2 class="tech-label mb-3">education</h2>
             <div class="panel p-5">
@@ -211,7 +221,7 @@ const learning = [
 
   <!-- ============ PROJECTS ============ -->
   <section id="projects" class="border-t border-line">
-    <div class="mx-auto max-w-6xl px-6 py-24">
+    <div class="mx-auto max-w-4xl px-6 py-24">
       <p class="tech-label mb-4">projects / systems I have built</p>
       <h2 class="mb-6 font-mono text-3xl tracking-tight text-fg sm:text-4xl">Projects</h2>
       <p class="mb-12 max-w-2xl text-fg-dim">
@@ -227,11 +237,17 @@ const learning = [
                 href={`/projects/${p.slug}`}
                 class="group block h-full border border-line bg-bg-elevated p-6 transition-colors hover:border-line-strong"
               >
-                <div class="mb-4 flex items-center justify-between font-mono text-xs text-fg-faint">
-                  <span>{String(i + 1).padStart(2, '0')} / featured</span>
-                  <span>{p.year}</span>
+                <div class="mb-4 flex items-center justify-between">
+                  <span
+                    class="flex h-9 w-9 items-center justify-center border border-line bg-bg-inset text-fg-dim"
+                  >
+                    <ProjectMark slug={p.slug} />
+                  </span>
+                  <span class="font-mono text-xs text-fg-faint">
+                    {String(i + 1).padStart(2, '0')} / featured · {p.year}
+                  </span>
                 </div>
-                <h3 class="mb-3 font-mono text-lg text-fg transition-colors group-hover:text-signal">
+                <h3 class="mb-3 font-mono text-lg text-fg transition-colors group-hover:text-fg-muted">
                   {p.name}
                 </h3>
                 <p class="mb-5 text-sm leading-relaxed text-fg-dim">{p.summary}</p>
@@ -241,7 +257,7 @@ const learning = [
                   ))}
                 </div>
                 {p.metrics.length > 0 && (
-                  <p class="mt-4 font-mono text-xs text-ok">{p.metrics.join(' · ')}</p>
+                  <p class="mt-4 font-mono text-xs text-fg-dim">{p.metrics.join(' · ')}</p>
                 )}
               </a>
             </li>
@@ -254,9 +270,11 @@ const learning = [
         <p class="tech-label mb-8">skills / technology</p>
         <dl class="grid gap-px bg-line md:grid-cols-2">
           {
-            SKILLS.map((group) => (
-              <div class="bg-bg p-6">
-                <dt class="font-mono text-xs tracking-widest text-signal uppercase">
+            SKILLS.map((group, i) => (
+              <div
+                class={`bg-bg p-6 ${SKILLS.length % 2 === 1 && i === SKILLS.length - 1 ? 'md:col-span-2' : ''}`}
+              >
+                <dt class="font-mono text-xs tracking-widest text-fg-dim uppercase">
                   {group.label}
                 </dt>
                 <dd class="mt-3 text-sm leading-loose text-fg-dim">{group.details.join(' · ')}</dd>
@@ -271,7 +289,7 @@ const learning = [
   <!-- ============ SECURITY ============ -->
   <section id="security" class="border-t border-line">
     <div class="mx-auto max-w-4xl px-6 py-24">
-      <p class="tech-label--signal mb-4">security / evidence → explanation → implementation</p>
+      <p class="tech-label mb-4">security / evidence → explanation → implementation</p>
       <h2 class="mb-6 font-mono text-3xl tracking-tight text-fg sm:text-4xl">Security</h2>
       <p class="max-w-2xl leading-relaxed text-fg-muted">
         I treat security as an engineering discipline: it shows up in how I build and operate
@@ -285,7 +303,7 @@ const learning = [
         {
           practices.map((p, i) => (
             <li class="flex gap-5 border-t border-line py-5">
-              <span class="w-8 shrink-0 font-mono text-sm text-signal">
+              <span class="w-8 shrink-0 font-mono text-sm text-fg-dim">
                 {String(i + 1).padStart(2, '0')}
               </span>
               <div>
@@ -304,15 +322,17 @@ const learning = [
         credentials held.
       </p>
       <ul class="grid gap-px bg-line sm:grid-cols-2">
-        {
-          learning.map((l) => (
-            <li class="bg-bg p-5">
-              <p class="font-mono text-sm text-fg">{l.area}</p>
-              <p class="mt-1 text-sm text-fg-dim">{l.note}</p>
-            </li>
-          ))
-        }
-      </ul>
+          {
+            learning.map((l, i) => (
+              <li
+                class={`bg-bg p-5 ${learning.length % 2 === 1 && i === learning.length - 1 ? 'sm:col-span-2' : ''}`}
+              >
+                <p class="font-mono text-sm text-fg">{l.area}</p>
+                <p class="mt-1 text-sm text-fg-dim">{l.note}</p>
+              </li>
+            ))
+          }
+        </ul>
     </div>
   </section>
 
@@ -327,7 +347,7 @@ const learning = [
         <a
           href="/resume.pdf"
           download
-          class="inline-flex items-center gap-2 border border-line-strong bg-bg-elevated px-4 py-2.5 font-mono text-sm text-fg transition-colors hover:border-signal hover:text-signal"
+          class="inline-flex items-center gap-2 border border-line-strong bg-bg-elevated px-4 py-2.5 font-mono text-sm text-fg transition-colors hover:border-fg-muted hover:text-fg"
         >
           <span aria-hidden="true">↓</span> download pdf
         </a>
@@ -356,11 +376,24 @@ const learning = [
 
   <!-- ============ CONTACT ============ -->
   <section id="contact" class="border-t border-line">
-    <div class="mx-auto max-w-2xl px-6 py-24">
+    <div class="mx-auto max-w-4xl px-6 py-24">
       <p class="tech-label--signal mb-4">contact / reach me</p>
       <h2 class="mb-10 font-mono text-3xl tracking-tight text-fg sm:text-4xl">Contact</h2>
 
       <div class="space-y-4">
+        <a
+          href={`tel:${SITE.phone.replace(/\D/g, '')}`}
+          class="group flex items-center gap-4 border border-line bg-bg-elevated p-5 transition-colors hover:border-signal"
+        >
+          <span class="font-mono text-signal" aria-hidden="true">+</span>
+          <div>
+            <p class="text-sm text-fg-dim">phone</p>
+            <p class="font-mono text-sm text-fg transition-colors group-hover:text-signal">
+              {SITE.phone}
+            </p>
+          </div>
+        </a>
+
         <a
           href={`mailto:${SITE.email}`}
           class="group flex items-center gap-4 border border-line bg-bg-elevated p-5 transition-colors hover:border-signal"

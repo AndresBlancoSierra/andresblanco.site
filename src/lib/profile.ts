@@ -11,6 +11,7 @@ export const SITE = {
   tagline: 'I build systems. I study how they work.',
   location: 'Bogotá, Colombia',
   email: 'andresfelipeblancos15@gmail.com',
+  phone: '+57 312 308 7133',
   github: 'https://github.com/AndresBlancoSierra',
   githubHandle: 'AndresBlancoSierra',
 } as const;
