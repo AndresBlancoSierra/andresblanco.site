@@ -11,7 +11,6 @@ import {
   PROJECTS,
   LEADERSHIP,
 } from '../lib/profile';
-import { ConstellationField } from '../components/three/ConstellationField';
 import ProjectMark from '../components/projects/ProjectMark';
 
 const practices = [
@@ -62,10 +61,6 @@ const learning = [
 <PageLayout path="/" title={SITE.name} description={`${SITE.headline} — ${SITE.tagline}`}>
   <!-- ============ HERO ============ -->
   <section id="top" class="relative isolate flex min-h-[88vh] items-center overflow-hidden">
-    <div class="absolute inset-0 -z-10 opacity-60" aria-hidden="true">
-      <ConstellationField client:visible />
-    </div>
-
     <div class="mx-auto w-full max-w-4xl px-6 py-28">
       <div class="max-w-3xl">
         <p class="tech-label mb-8">{SITE.headline}</p>
