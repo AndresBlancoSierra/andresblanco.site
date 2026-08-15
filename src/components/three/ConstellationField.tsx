@@ -27,7 +27,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import * as THREE from 'three';
 import { buildScene, type ConstellationScene, type SceneStar } from '../../lib/constellations';
-import { EINSTEIN_R, lensPoint, LENSING_GLSL } from '../../lib/lensing';
+import { EINSTEIN_R, lensPointAboutHole, LENSING_GLSL } from '../../lib/lensing';
 
 type Vec3 = [number, number, number];
 
@@ -62,17 +62,18 @@ const FIELD_VERT = /* glsl */ `
     float t = uTime * 1.6 + aPhase;
     vTwinkle = 0.6 + 0.4 * sin(t);
 
-    vec3 p = position;
+    // lens in view space so the Einstein ring stays a perfect circle on screen
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
     if (uHoleStrength > 0.0) {
-      p = lensed(p);
-      float r = length(p.xy - uHole.xy);
+      mv.xyz = lensed(mv.xyz);
+      vec4 hv = viewMatrix * modelMatrix * vec4(uHole, 1.0);
+      float r = length(mv.xy - hv.xy);
       float ring = abs(r - uEinstein);
       float boost = exp(-ring * ring * 12.0);
       vTwinkle += boost * 1.6 * uHoleStrength;
       vColor += vec3(boost * 0.4 * uHoleStrength);
     }
 
-    vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_PointSize = aSize * uScale / max(-mv.z, 0.1);
     gl_Position = projectionMatrix * mv;
   }
@@ -177,6 +178,7 @@ function ConstellationStars({
   hole: RefObject<HoleState | null>;
 }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const camera = useThree((s) => s.camera);
   const geo = useMemo(() => new THREE.SphereGeometry(0.5, 12, 12), []);
   const mat = useMemo(
     () =>
@@ -199,10 +201,20 @@ function ConstellationStars({
   function write(strength: number) {
     const mesh = meshRef.current;
     if (!mesh) return;
+    mesh.updateWorldMatrix(true, false);
     const dummy = new THREE.Object3D();
     base.forEach((p, i) => {
       dummy.position.copy(p);
-      if (strength > 0) lensPoint(dummy.position, p, hole.current!.position, EINSTEIN_R, strength);
+      if (strength > 0)
+        lensPointAboutHole(
+          dummy.position,
+          p,
+          hole.current!.position,
+          camera,
+          mesh.matrixWorld,
+          EINSTEIN_R,
+          strength,
+        );
       dummy.rotation.set(0, 0, 0);
       dummy.scale.setScalar(radii[i] * 2);
       dummy.updateMatrix();
@@ -249,6 +261,7 @@ function ConstellationEdges({
   hole: RefObject<HoleState | null>;
 }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const camera = useThree((s) => s.camera);
   const geo = useMemo(() => new THREE.CylinderGeometry(1, 1, 1, 4, 1), []);
   const mat = useMemo(
     () =>
@@ -275,6 +288,7 @@ function ConstellationEdges({
   function write(strength: number) {
     const mesh = meshRef.current;
     if (!mesh) return;
+    mesh.updateWorldMatrix(true, false);
     const dummy = new THREE.Object3D();
     const up = new THREE.Vector3(0, 1, 0);
     const a = new THREE.Vector3();
@@ -283,8 +297,24 @@ function ConstellationEdges({
       a.copy(edge.from);
       b.copy(edge.to);
       if (strength > 0) {
-        lensPoint(a, edge.from, hole.current!.position, EINSTEIN_R, strength);
-        lensPoint(b, edge.to, hole.current!.position, EINSTEIN_R, strength);
+        lensPointAboutHole(
+          a,
+          edge.from,
+          hole.current!.position,
+          camera,
+          mesh.matrixWorld,
+          EINSTEIN_R,
+          strength,
+        );
+        lensPointAboutHole(
+          b,
+          edge.to,
+          hole.current!.position,
+          camera,
+          mesh.matrixWorld,
+          EINSTEIN_R,
+          strength,
+        );
       }
       const mid = a.clone().add(b).multiplyScalar(0.5);
       const length = a.distanceTo(b);
@@ -329,6 +359,7 @@ function SkyLinks({
   hole: RefObject<HoleState | null>;
 }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const camera = useThree((s) => s.camera);
   const geo = useMemo(() => new THREE.CylinderGeometry(1, 1, 1, 3, 1), []);
   const mat = useMemo(
     () =>
@@ -354,6 +385,7 @@ function SkyLinks({
   function write(strength: number) {
     const mesh = meshRef.current;
     if (!mesh) return;
+    mesh.updateWorldMatrix(true, false);
     const dummy = new THREE.Object3D();
     const up = new THREE.Vector3(0, 1, 0);
     const a = new THREE.Vector3();
@@ -362,8 +394,24 @@ function SkyLinks({
       a.copy(link.from);
       b.copy(link.to);
       if (strength > 0) {
-        lensPoint(a, link.from, hole.current!.position, EINSTEIN_R, strength);
-        lensPoint(b, link.to, hole.current!.position, EINSTEIN_R, strength);
+        lensPointAboutHole(
+          a,
+          link.from,
+          hole.current!.position,
+          camera,
+          mesh.matrixWorld,
+          EINSTEIN_R,
+          strength,
+        );
+        lensPointAboutHole(
+          b,
+          link.to,
+          hole.current!.position,
+          camera,
+          mesh.matrixWorld,
+          EINSTEIN_R,
+          strength,
+        );
       }
       const mid = a.clone().add(b).multiplyScalar(0.5);
       const length = a.distanceTo(b);

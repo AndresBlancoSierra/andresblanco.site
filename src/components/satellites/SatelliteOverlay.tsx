@@ -7,21 +7,18 @@ interface Pass {
   yPct: number;
   t0: number;
   dur: number;
-  drift: number;
 }
 
 const MIN_INTERVAL = 18_000;
 const MAX_INTERVAL = 32_000;
-const FADE = 0.08;
-
-function easeInOutQuad(t: number): number {
-  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-}
+const OPACITY = 0.4;
 
 /**
- * Foreground overlay: real historical satellites crossing the viewport slowly,
- * rendered above all site text at full opacity. The images are transparent PNGs
- * so they float without a box. Disabled under `prefers-reduced-motion`.
+ * Foreground overlay: real historical satellites crossing the viewport slowly
+ * in a straight horizontal line, rendered above all site text at a fixed,
+ * subdued opacity (no fade — the image simply enters and exits the screen).
+ * The images are transparent PNGs so they float without a box. Disabled under
+ * `prefers-reduced-motion`.
  */
 export function SatelliteOverlay() {
   const imgRef = useRef<HTMLImageElement>(null);
@@ -56,7 +53,6 @@ export function SatelliteOverlay() {
           yPct: 0.08 + Math.random() * 0.78,
           t0: now,
           dur: 26_000 + Math.random() * 12_000,
-          drift: 0.02 + Math.random() * 0.03,
         };
         passRef.current = pass;
         img.src = pass.satellite.image;
@@ -73,13 +69,11 @@ export function SatelliteOverlay() {
       }
 
       const q = t / pass.dur;
-      const ease = easeInOutQuad(q);
-      const x = pass.fromLeft ? ease * 100 : 100 - ease * 100;
-      const y = window.innerHeight * (pass.yPct + pass.drift * Math.sin(t * 0.001));
-      const fade = q < FADE ? q / FADE : q > 1 - FADE ? (1 - q) / FADE : 1;
+      const x = pass.fromLeft ? q * 100 : 100 - q * 100;
+      const y = window.innerHeight * pass.yPct;
 
       img.style.transform = `translate3d(calc(${x}vw - 50%), ${y}px, 0)`;
-      img.style.opacity = String(fade);
+      img.style.opacity = String(OPACITY);
     };
 
     raf = requestAnimationFrame(frame);

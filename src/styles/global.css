@@ -107,6 +107,24 @@
   .ident {
     @apply font-mono text-[0.9em] text-fg-muted;
   }
+
+  /* Typewriter terminal caret */
+  .tw-caret {
+    display: inline-block;
+    margin-left: 0.18em;
+    color: var(--color-fg);
+    animation: tw-blink 1s steps(1, end) infinite;
+  }
+}
+
+@keyframes tw-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 /* Scrollbar: understated */

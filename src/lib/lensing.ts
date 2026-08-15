@@ -3,6 +3,12 @@ import * as THREE from 'three';
 /** Einstein radius of the black hole lens, in scene units. */
 export const EINSTEIN_R = 0.55;
 
+/** Scratch vectors/matrices for view-space lensing (used synchronously). */
+const tmpViewP = new THREE.Vector3();
+const tmpViewH = new THREE.Vector3();
+const tmpLocalToView = new THREE.Matrix4();
+const tmpViewToLocal = new THREE.Matrix4();
+
 /**
  * Point-lens (Einstein ring) displacement used by the black hole event.
  *
@@ -39,18 +45,62 @@ export function lensPoint(
   return out;
 }
 
-/** GLSL twin of `lensPoint`, run in the star-field vertex shader. */
+/**
+ * Lens a point about a black hole in **view space**, so the Einstein ring
+ * projects as a perfect circle on screen regardless of camera orientation or
+ * the depth of the surrounding stars. Lensing in world space makes the ring
+ * oval because stars sit at different depths and the plane of displacement
+ * is not perpendicular to the view direction.
+ *
+ * `localToWorld` is the world matrix of the object that owns `point` and
+ * `hole` (both given in that object's local space). The point is transformed
+ * to view space, displaced in the view xy-plane (perpendicular to the camera),
+ * then transformed back to local space.
+ */
+export function lensPointInView(
+  out: THREE.Vector3,
+  point: THREE.Vector3,
+  hole: THREE.Vector3,
+  localToView: THREE.Matrix4,
+  viewToLocal: THREE.Matrix4,
+  einsteinR: number,
+  strength: number,
+): THREE.Vector3 {
+  tmpViewP.copy(point).applyMatrix4(localToView);
+  tmpViewH.copy(hole).applyMatrix4(localToView);
+  lensPoint(tmpViewP, tmpViewP, tmpViewH, einsteinR, strength);
+  return out.copy(tmpViewP).applyMatrix4(viewToLocal);
+}
+
+/**
+ * Convenience wrapper that builds the local↔view transforms from a camera and
+ * the owning object's world matrix, then lenses `point` in view space.
+ */
+export function lensPointAboutHole(
+  out: THREE.Vector3,
+  point: THREE.Vector3,
+  hole: THREE.Vector3,
+  camera: THREE.Camera,
+  localToWorld: THREE.Matrix4,
+  einsteinR: number,
+  strength: number,
+): THREE.Vector3 {
+  camera.updateMatrixWorld();
+  tmpLocalToView.multiplyMatrices(camera.matrixWorldInverse, localToWorld);
+  tmpViewToLocal.copy(tmpLocalToView).invert();
+  return lensPointInView(out, point, hole, tmpLocalToView, tmpViewToLocal, einsteinR, strength);
+}
+
+/** GLSL twin of `lensPoint`, run in view space in the star-field vertex shader. */
 export const LENSING_GLSL = /* glsl */ `
-  vec2 lensDir(vec2 p) {
-    return (uHole.xy - p) / max(length(uHole.xy - p), 0.0001);
-  }
   vec3 lensed(vec3 p) {
-    vec2 d = p.xy - uHole.xy;
+    vec4 hv = viewMatrix * modelMatrix * vec4(uHole, 1.0);
+    vec2 d = p.xy - hv.xy;
     float r = length(d);
-    if (r < 0.0001) return vec3(uHole.xy, p.z);
+    if (r < 0.0001) return vec3(hv.xy, p.z);
     float th = 0.5 * (r + sqrt(r * r + 4.0 * uEinstein * uEinstein));
     vec2 dir = d / r;
-    vec2 lensedXY = uHole.xy + dir * th;
+    vec2 lensedXY = hv.xy + dir * th;
     return vec3(mix(p.xy, lensedXY, uHoleStrength), p.z);
   }
 `;

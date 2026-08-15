@@ -12,6 +12,7 @@ import {
   LEADERSHIP,
 } from '../lib/profile';
 import ProjectMark from '../components/projects/ProjectMark';
+import Typewriter from '../components/animations/Typewriter';
 
 const featuredProjects = (await getCollection('projects'))
   .sort((a, b) => a.data.order - b.data.order)
@@ -69,11 +70,15 @@ const learning = [
       <div class="max-w-3xl">
         <p class="tech-label mb-8">{SITE.headline}</p>
 
-        <h1
-          class="max-w-3xl font-sans text-5xl font-semibold leading-[1.05] tracking-tight text-fg sm:text-6xl lg:text-7xl"
-        >
-          Andres Blanco
-        </h1>
+        <Typewriter
+          as="h1"
+          text="Andres Blanco"
+          speed={60}
+          delay={250}
+          keepCaret
+          className="max-w-3xl font-sans text-5xl font-semibold leading-[1.05] tracking-tight text-fg sm:text-6xl lg:text-7xl"
+          client:visible
+        />
 
         <p class="mt-6 max-w-2xl font-sans text-xl font-medium text-fg sm:text-2xl">
           Turning curiosity into reality.
@@ -114,7 +119,13 @@ const learning = [
   <section id="about" class="border-t border-line">
     <div class="mx-auto max-w-4xl px-6 py-24">
       <p class="tech-label mb-4">about / who I am</p>
-      <h2 class="mb-12 font-mono text-3xl tracking-tight text-fg sm:text-4xl">About</h2>
+      <Typewriter
+        as="h2"
+        text="About"
+        speed={40}
+        className="mb-12 font-mono text-3xl tracking-tight text-fg sm:text-4xl"
+        client:visible
+      />
 
       <div class="grid gap-10 lg:grid-cols-2">
         <!-- narrative -->
@@ -222,7 +233,13 @@ const learning = [
   <section id="projects" class="border-t border-line">
     <div class="mx-auto max-w-4xl px-6 py-24">
       <p class="tech-label mb-4">projects / systems I have built</p>
-      <h2 class="mb-6 font-mono text-3xl tracking-tight text-fg sm:text-4xl">Projects</h2>
+      <Typewriter
+        as="h2"
+        text="Projects"
+        speed={40}
+        className="mb-6 font-mono text-3xl tracking-tight text-fg sm:text-4xl"
+        client:visible
+      />
       <p class="mb-12 max-w-2xl text-fg-dim">
         Each featured project is documented as a technical case study: the problem, the architecture
         and the engineering decisions behind it.
@@ -287,7 +304,13 @@ const learning = [
   <section id="security" class="border-t border-line">
     <div class="mx-auto max-w-4xl px-6 py-24">
       <p class="tech-label mb-4">security / evidence → explanation → implementation</p>
-      <h2 class="mb-6 font-mono text-3xl tracking-tight text-fg sm:text-4xl">Security</h2>
+      <Typewriter
+        as="h2"
+        text="Security"
+        speed={40}
+        className="mb-6 font-mono text-3xl tracking-tight text-fg sm:text-4xl"
+        client:visible
+      />
       <p class="max-w-2xl leading-relaxed text-fg-muted">
         I treat security as an engineering discipline: it shows up in how I build and operate
         systems, not as a list of tools. Below is the evidence in my own projects — what each
@@ -339,7 +362,13 @@ const learning = [
       <div class="mb-12 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p class="tech-label mb-4">resume / cv</p>
-          <h2 class="font-mono text-3xl tracking-tight text-fg sm:text-4xl">Resume</h2>
+          <Typewriter
+            as="h2"
+            text="Resume"
+            speed={40}
+            className="font-mono text-3xl tracking-tight text-fg sm:text-4xl"
+            client:visible
+          />
         </div>
         <a
           href="/resume.pdf"
@@ -375,7 +404,13 @@ const learning = [
   <section id="contact" class="border-t border-line">
     <div class="mx-auto max-w-4xl px-6 py-24">
       <p class="tech-label--signal mb-4">contact / reach me</p>
-      <h2 class="mb-10 font-mono text-3xl tracking-tight text-fg sm:text-4xl">Contact</h2>
+      <Typewriter
+        as="h2"
+        text="Contact"
+        speed={40}
+        className="mb-10 font-mono text-3xl tracking-tight text-fg sm:text-4xl"
+        client:visible
+      />
 
       <div class="space-y-4">
         <a

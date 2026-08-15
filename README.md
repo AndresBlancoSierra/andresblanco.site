@@ -7,7 +7,7 @@ Aesthetic: black + white + a subtle constellation of systems — "Engineering as
 ## Stack
 
 - **Astro 7** — static site generation, content layer, routing
-- **React 19** — islands only (constellation visualization, satellite overlay, scroll reveals)
+- **React 19** — islands only (constellation visualization, satellite overlay, typewriter titles, scroll reveals)
 - **Three.js / @react-three/fiber** — the constellation canvas on the hero
 - **GSAP + ScrollTrigger** — scroll animations (respects `prefers-reduced-motion`)
 - **Tailwind CSS v4** — design tokens via `@theme` in `src/styles/global.css`
@@ -70,7 +70,8 @@ Static output in `dist/`. Compatible with Cloudflare Pages or Vercel. Domain: `a
 - **Mobile nav is a native `<details>` disclosure** — zero JS.
 - **Hero sky is real astronomy**: 8 constellations (Orion, Ursa Major, Cassiopeia, Leo, Scorpius, Cygnus, Crux, Sagittarius) with Hipparcos positions and magnitudes; size/brightness derived from real magnitude. Events (supernova, black hole, variable stars, star birth, meteors) are declarative and data-driven.
 - **`prefers-reduced-motion`** freezes the sky (static frame, no events, no twinkle), disables GSAP animations and hides the satellite overlay.
-- **Black hole = dark void + lensing, no light**: when active, the star field shader and the constellation instances bend nearby stars into an Einstein ring around the void (`src/lib/lensing.ts`), so the deformation itself is the effect — nothing emits light.
-- **Satellite overlay**: transparent PNGs of real spacecraft (Explorer-1, Hubble) cross the viewport slowly in a `pointer-events-none` fixed layer above all text at full opacity; the catalog links each to its Commons source and license.
+- **Black hole = dark void + lensing, no light**: when active, the star field shader and the constellation instances bend nearby stars into an Einstein ring around the void (`src/lib/lensing.ts`), so the deformation itself is the effect — nothing emits light. Lensing is computed in **view space**, so the ring projects as a perfect circle regardless of camera orientation or star depth.
+- **Satellite overlay**: transparent PNGs of real spacecraft (Explorer-1, Hubble) cross the viewport slowly in a straight line in a `pointer-events-none` fixed layer above all text at a fixed subdued opacity (no fade — the image enters and exits the screen); the catalog links each to its Commons source and license.
+- **Typewriter titles**: the hero name and the section headings reveal character-by-character with a blinking terminal caret, using `client:visible` so each starts typing as it scrolls into view; full text stays server-rendered (SEO/no-JS) and the effect is skipped under `prefers-reduced-motion`.
 - **Performance tiers**: mobile/low-end gets fewer stars, capped DPR and `frameloop="demand"`; the default canvas is `low-power` with instanced geometry.
 - **Projects come from MDX** (`getCollection('projects')`), not `profile.ts` — one source of truth, guarded by tests.
