@@ -7,13 +7,14 @@ Aesthetic: black + white + a subtle constellation of systems — "Engineering as
 ## Stack
 
 - **Astro 7** — static site generation, content layer, routing
-- **React 19** — islands only (constellation visualization, scroll reveals)
+- **React 19** — islands only (constellation visualization, satellite overlay, scroll reveals)
 - **Three.js / @react-three/fiber** — the constellation canvas on the hero
 - **GSAP + ScrollTrigger** — scroll animations (respects `prefers-reduced-motion`)
 - **Tailwind CSS v4** — design tokens via `@theme` in `src/styles/global.css`
 - **MDX** — case studies under `src/content/projects/`
 - **TypeScript** (strict) — data is centralized in `src/lib/profile.ts`
 - **Hipparcos catalog** — the hero sky is built from real star data (`src/lib/constellations.ts`)
+- **Historical satellites** — a foreground overlay crosses the viewport with real spacecraft renders (`src/lib/satellites.ts`)
 
 ## Content model
 
@@ -44,10 +45,12 @@ src/
   content/projects/ # 6 MDX case studies (01 Problem → 07 Lessons Learned) — single source for projects
   lib/profile.ts    # single source of truth (personal data)
   lib/constellations.ts # real star catalog + scene builder for the hero sky
+  lib/satellites.ts # real historical satellites (launch date, agency, milestone, source)
   lib/site.ts       # nav anchors, canonical URL helpers
   pages/            # index (single page with anchor sections) + projects/[slug]
   styles/global.css # Tailwind v4 theme tokens
-tests/              # vitest unit tests (profile + projects + constellation invariants)
+tests/              # vitest unit tests (profile + projects + constellations + satellites)
+public/satellites/  # grayscale PNGs of the 7 spacecraft (NASA/Commons, traceable)
 e2e/                # Playwright smoke tests (desktop + mobile)
 ```
 
@@ -65,6 +68,7 @@ Static output in `dist/`. Compatible with Cloudflare Pages or Vercel. Domain: `a
 - **Single-page layout**: everything lives on `/` as anchor sections (`#about`, `#projects`, `#security`, `#resume`, `#contact`); only project case studies are separate routes.
 - **Mobile nav is a native `<details>` disclosure** — zero JS.
 - **Hero sky is real astronomy**: 8 constellations (Orion, Ursa Major, Cassiopeia, Leo, Scorpius, Cygnus, Crux, Sagittarius) with Hipparcos positions and magnitudes; size/brightness derived from real magnitude. Events (supernova, black hole, satellite, variable stars, star birth, meteors) are declarative and data-driven.
-- **`prefers-reduced-motion`** freezes the sky (static frame, no events, no twinkle) and disables GSAP animations.
+- **`prefers-reduced-motion`** freezes the sky (static frame, no events, no twinkle), disables GSAP animations and hides the satellite overlay.
+- **Satellite overlay**: historical spacecraft (Sputnik-1, Explorer-1, Vanguard-1, Telstar-1, Skylab, Hubble, ISS) cross the viewport slowly in a `pointer-events-none` fixed layer above all text; `mix-blend-mode: screen` hides their black backgrounds, `grayscale()` keeps them monochrome, and the catalog links each to its Commons source and license.
 - **Performance tiers**: mobile/low-end gets fewer stars, capped DPR and `frameloop="demand"`; the default canvas is `low-power` with instanced geometry.
 - **Projects come from MDX** (`getCollection('projects')`), not `profile.ts` — one source of truth, guarded by tests.

@@ -2,6 +2,7 @@
 import { SITE } from '../lib/profile';
 import { canonicalUrl } from '../lib/site';
 import { ConstellationField } from '../components/three/ConstellationField';
+import { SatelliteOverlay } from '../components/satellites/SatelliteOverlay';
 import '../styles/global.css';
 
 interface Props {
@@ -78,6 +79,8 @@ const url = canonicalUrl(path);
     <div class="fixed inset-0 -z-10" aria-hidden="true">
       <ConstellationField client:visible />
     </div>
+
+    <SatelliteOverlay client:visible />
 
     <a
       href="#main"
