@@ -108,13 +108,23 @@
     @apply font-mono text-[0.9em] text-fg-muted;
   }
 
-  /* Typewriter terminal caret */
+  /* Typewriter terminal caret: a thin, dim bar that blinks while typing */
   .tw-caret {
     display: inline-block;
+    width: 1px;
+    height: 0.85em;
     margin-left: 0.18em;
-    color: var(--color-fg);
+    vertical-align: baseline;
+    background: var(--color-fg-dim);
     animation: tw-blink 1s steps(1, end) infinite;
   }
+}
+
+/* Typewriter: keep the server-rendered text out of sight until hydration so
+   the reveal starts from empty instead of flashing the full title first.
+   Without JS (`html.js` absent) the full text stays visible (SEO/no-JS). */
+html.js .tw-typewriter {
+  visibility: hidden;
 }
 
 @keyframes tw-blink {

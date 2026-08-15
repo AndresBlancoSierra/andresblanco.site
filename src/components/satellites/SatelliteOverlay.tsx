@@ -11,13 +11,13 @@ interface Pass {
 
 const MIN_INTERVAL = 18_000;
 const MAX_INTERVAL = 32_000;
-const OPACITY = 0.4;
+const OPACITY = 1;
 
 /**
  * Foreground overlay: real historical satellites crossing the viewport slowly
- * in a straight horizontal line, rendered above all site text at a fixed,
- * subdued opacity (no fade — the image simply enters and exits the screen).
- * The images are transparent PNGs so they float without a box. Disabled under
+ * in a straight horizontal line, rendered above all site text at full opacity
+ * (no fade — the image simply enters and exits the screen). The images are
+ * transparent PNGs so they float without a box. Disabled under
  * `prefers-reduced-motion`.
  */
 export function SatelliteOverlay() {

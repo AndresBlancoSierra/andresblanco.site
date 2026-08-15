@@ -34,6 +34,9 @@ const url = canonicalUrl(path);
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
 
     <title>{pageTitle}</title>
     <meta name="description" content={description} />

@@ -8,7 +8,7 @@ interface TypewriterProps {
   speed?: number;
   /** delay before typing starts, in ms */
   delay?: number;
-  /** show a blinking terminal caret while typing */
+  /** show a thin blinking caret while typing */
   caret?: boolean;
   /** keep the caret blinking after the text finishes (e.g. the hero) */
   keepCaret?: boolean;
@@ -17,11 +17,12 @@ interface TypewriterProps {
 /**
  * Typewriter — reveals `text` character by character, terminal style.
  *
- * The full text is server-rendered in the DOM (so SEO and no-JS visitors see
- * it intact); on hydration the span is cleared and retyped. Use `client:visible`
- * so a short section title starts typing exactly as it scrolls into view.
- * Honors `prefers-reduced-motion` by leaving the full text visible with no
- * caret.
+ * The full text is server-rendered in the DOM (SEO and no-JS visitors see it
+ * intact) but hidden until hydration (`html.js .tw-typewriter`). On hydration
+ * an IntersectionObserver waits until the title crosses the vertical center of
+ * the viewport, then the reveal starts from empty — so it types exactly as the
+ * reader lands on it, never flashing the finished title first. Honors
+ * `prefers-reduced-motion` by showing the full text with no caret.
  */
 export default function Typewriter({
   text,
@@ -37,15 +38,17 @@ export default function Typewriter({
 
   useLayoutEffect(() => {
     const el = textRef.current;
-    if (!el) return;
+    const host = el?.parentElement;
+    if (!el || !host) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      host.style.visibility = 'visible';
       if (caretRef.current) caretRef.current.style.display = 'none';
       return;
     }
 
-    el.textContent = '';
     let i = 0;
     let timer = 0;
+    let startTimer = 0;
 
     const type = () => {
       i += 1;
@@ -57,22 +60,36 @@ export default function Typewriter({
       }
     };
 
-    const start = window.setTimeout(type, delay);
+    const start = () => {
+      host.style.visibility = 'visible';
+      el.textContent = '';
+      startTimer = window.setTimeout(type, delay);
+    };
+
+    // trigger once the title passes the vertical center of the viewport
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          io.disconnect();
+          start();
+        }
+      },
+      { rootMargin: '0px 0px -50% 0px' },
+    );
+    io.observe(el);
+
     return () => {
-      window.clearTimeout(start);
+      io.disconnect();
       window.clearTimeout(timer);
+      window.clearTimeout(startTimer);
     };
   }, [text, speed, delay, keepCaret]);
 
   const Tag = as;
   return (
-    <Tag className={className}>
+    <Tag className={`${className ?? ''} tw-typewriter`.trim()}>
       <span ref={textRef}>{text}</span>
-      {caret && (
-        <span ref={caretRef} className="tw-caret" aria-hidden="true">
-          ▍
-        </span>
-      )}
+      {caret && <span ref={caretRef} className="tw-caret" aria-hidden="true" />}
     </Tag>
   );
 }
