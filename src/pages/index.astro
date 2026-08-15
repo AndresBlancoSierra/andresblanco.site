@@ -1,4 +1,5 @@
 ---
+import { getCollection } from 'astro:content';
 import PageLayout from '../layouts/PageLayout.astro';
 import {
   SITE,
@@ -8,10 +9,13 @@ import {
   QUALITY_GUARANTEES,
   LANGUAGES,
   HONORS,
-  PROJECTS,
   LEADERSHIP,
 } from '../lib/profile';
 import ProjectMark from '../components/projects/ProjectMark';
+
+const featuredProjects = (await getCollection('projects'))
+  .sort((a, b) => a.data.order - b.data.order)
+  .filter((p) => p.data.status === 'featured');
 
 const practices = [
   {
@@ -226,33 +230,31 @@ const learning = [
 
       <ul class="grid gap-4 md:grid-cols-2">
         {
-          PROJECTS.filter((p) => p.status === 'featured').map((p, i) => (
+          featuredProjects.map((p, i) => (
             <li>
               <a
-                href={`/projects/${p.slug}`}
+                href={`/projects/${p.id}`}
                 class="group block h-full border border-line bg-bg-elevated p-6 transition-colors hover:border-line-strong"
               >
                 <div class="mb-4 flex items-center justify-between">
-                  <span
-                    class="flex h-9 w-9 items-center justify-center border border-line bg-bg-inset text-fg-dim"
-                  >
-                    <ProjectMark slug={p.slug} />
+                  <span class="flex h-9 w-9 items-center justify-center border border-line bg-bg-inset text-fg-dim">
+                    <ProjectMark slug={p.id} />
                   </span>
                   <span class="font-mono text-xs text-fg-faint">
-                    {String(i + 1).padStart(2, '0')} / featured · {p.year}
+                    {String(i + 1).padStart(2, '0')} / featured · {p.data.year}
                   </span>
                 </div>
                 <h3 class="mb-3 font-mono text-lg text-fg transition-colors group-hover:text-fg-muted">
-                  {p.name}
+                  {p.data.title}
                 </h3>
-                <p class="mb-5 text-sm leading-relaxed text-fg-dim">{p.summary}</p>
+                <p class="mb-5 text-sm leading-relaxed text-fg-dim">{p.data.summary}</p>
                 <div class="flex flex-wrap gap-2">
-                  {p.tech.map((t) => (
+                  {p.data.tags.map((t) => (
                     <span class="font-mono text-xs text-fg-faint">{t}</span>
                   ))}
                 </div>
-                {p.metrics.length > 0 && (
-                  <p class="mt-4 font-mono text-xs text-fg-dim">{p.metrics.join(' · ')}</p>
+                {p.data.metrics && p.data.metrics.length > 0 && (
+                  <p class="mt-4 font-mono text-xs text-fg-dim">{p.data.metrics.join(' · ')}</p>
                 )}
               </a>
             </li>
@@ -317,17 +319,17 @@ const learning = [
         credentials held.
       </p>
       <ul class="grid gap-px bg-line sm:grid-cols-2">
-          {
-            learning.map((l, i) => (
-              <li
-                class={`bg-bg p-5 ${learning.length % 2 === 1 && i === learning.length - 1 ? 'sm:col-span-2' : ''}`}
-              >
-                <p class="font-mono text-sm text-fg">{l.area}</p>
-                <p class="mt-1 text-sm text-fg-dim">{l.note}</p>
-              </li>
-            ))
-          }
-        </ul>
+        {
+          learning.map((l, i) => (
+            <li
+              class={`bg-bg p-5 ${learning.length % 2 === 1 && i === learning.length - 1 ? 'sm:col-span-2' : ''}`}
+            >
+              <p class="font-mono text-sm text-fg">{l.area}</p>
+              <p class="mt-1 text-sm text-fg-dim">{l.note}</p>
+            </li>
+          ))
+        }
+      </ul>
     </div>
   </section>
 

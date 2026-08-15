@@ -9,12 +9,20 @@ interface Props {
   path: string;
   image?: string;
   type?: 'website' | 'article';
+  jsonLd?: object;
 }
 
-const { title, description, path, image, type } = Astro.props;
+const { title, description, path, image, type, jsonLd } = Astro.props;
 ---
 
-<BaseLayout title={title} description={description} path={path} image={image} type={type}>
+<BaseLayout
+  title={title}
+  description={description}
+  path={path}
+  image={image}
+  type={type}
+  jsonLd={jsonLd}
+>
   <Fragment slot="header">
     <Header />
   </Fragment>

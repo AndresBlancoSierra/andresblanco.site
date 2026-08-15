@@ -10,6 +10,7 @@ interface Props {
   path: string;
   image?: string;
   type?: 'website' | 'article';
+  jsonLd?: object;
 }
 
 const {
@@ -18,9 +19,11 @@ const {
   path,
   image = '/og-default.png',
   type = 'website',
+  jsonLd,
 } = Astro.props;
 
-const pageTitle = title === SITE.name ? `${SITE.name} — Systems Engineer` : `${title} — ${SITE.name}`;
+const pageTitle =
+  title === SITE.name ? `${SITE.name} — Systems Engineer` : `${title} — ${SITE.name}`;
 const url = canonicalUrl(path);
 ---
 
@@ -38,6 +41,7 @@ const url = canonicalUrl(path);
     <!-- Open Graph -->
     <meta property="og:type" content={type} />
     <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={url} />
@@ -55,16 +59,20 @@ const url = canonicalUrl(path);
     <!-- Theme + structured data -->
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#050505" />
-    <script type="application/ld+json" set:html={JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'Person',
-      name: SITE.name,
-      jobTitle: 'Systems Engineering Student',
-      url,
-      email: `mailto:${SITE.email}`,
-      address: { '@type': 'PostalAddress', addressLocality: 'Bogotá', addressCountry: 'CO' },
-      sameAs: [SITE.github],
-    })} />
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: SITE.name,
+        jobTitle: 'Systems Engineering Student',
+        url,
+        email: `mailto:${SITE.email}`,
+        address: { '@type': 'PostalAddress', addressLocality: 'Bogotá', addressCountry: 'CO' },
+        sameAs: [SITE.github],
+      })}
+    />
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
   </head>
   <body>
     <div class="fixed inset-0 -z-10" aria-hidden="true">

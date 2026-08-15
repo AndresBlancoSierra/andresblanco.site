@@ -20,7 +20,6 @@ const projects = defineCollection({
         note: z.string().optional(),
       }),
     ),
-    highlights: z.array(z.string()).optional(),
     metrics: z.array(z.string()).optional(),
   }),
 });

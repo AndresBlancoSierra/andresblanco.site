@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import PageLayout from '../../layouts/PageLayout.astro';
 import ProjectLayout from '../../layouts/ProjectLayout.astro';
+import { SITE_DOMAIN } from '../../lib/site';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects', ({ data }) => data.status === 'featured');
@@ -14,9 +15,22 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content } = await render(entry);
 const { title, year, summary, tags, repo, metrics } = entry.data;
+const path = `/projects/${entry.id}`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: title,
+  description: summary,
+  datePublished: `${year}-01-01`,
+  author: { '@type': 'Person', name: 'Andres Blanco' },
+  publisher: { '@type': 'Person', name: 'Andres Blanco' },
+  mainEntityOfPage: `https://${SITE_DOMAIN}${path}`,
+  about: { '@type': 'SoftwareSourceCode', codeRepository: repo },
+};
 ---
 
-<PageLayout path={`/projects/${entry.id}`} title={title} description={summary} type="article">
+<PageLayout path={path} title={title} description={summary} type="article" jsonLd={jsonLd}>
   <ProjectLayout
     title={title}
     year={year}
