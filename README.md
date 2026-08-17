@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://github.com/AndresBlancoSierra/andresblanco.site">
+    <img src="https://raw.githubusercontent.com/AndresBlancoSierra/andresblanco.site/main/profile.svg" alt="andresblanco.site — andresblanco.site@arch">
+  </a>
+</p>
+
 # andresblanco.site
 
 Personal website and portfolio of **Andres Blanco** — Systems Engineering student at Universidad EAN (Bogotá, Colombia). Focus: software, cloud, security, Linux.
